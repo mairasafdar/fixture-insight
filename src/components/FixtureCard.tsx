@@ -22,7 +22,7 @@ function TeamBadge({ name, crest, tla }: { name: string; crest: string | null; t
   return (
     <div className="flex min-w-0 items-center gap-2.5">
       {crest ? (
-        <img src={crest} alt="" className="size-8 shrink-0 rounded-md bg-white/5 p-0.5" loading="lazy" />
+        <img src={crest} alt="" className="size-8 shrink-0 rounded-md bg-secondary p-0.5" loading="lazy" />
       ) : (
         <div className="grid size-8 shrink-0 place-items-center rounded-md bg-secondary text-xs font-semibold">
           {tla ?? "?"}
