@@ -139,24 +139,25 @@
 @utility bolt-accent {
   position: relative;
   overflow: hidden;
+  &::after {
+    content: "";
+    position: absolute;
+    top: -20%;
+    right: -8%;
+    width: 40%;
+    height: 140%;
+    background: linear-gradient(
+      115deg,
+      transparent 45%,
+      oklch(0.62 0.26 340 / 0.12) 46%,
+      oklch(0.62 0.26 340 / 0.12) 52%,
+      transparent 53%,
+      transparent 58%,
+      oklch(0.20 0.09 320 / 0.08) 59%,
+      oklch(0.20 0.09 320 / 0.08) 62%,
+      transparent 63%
+    );
+    pointer-events: none;
+  }
 }
-@utility bolt-accent::after {
-  content: "";
-  position: absolute;
-  top: -20%;
-  right: -8%;
-  width: 40%;
-  height: 140%;
-  background: linear-gradient(
-    115deg,
-    transparent 45%,
-    oklch(0.62 0.26 340 / 0.12) 46%,
-    oklch(0.62 0.26 340 / 0.12) 52%,
-    transparent 53%,
-    transparent 58%,
-    oklch(0.20 0.09 320 / 0.08) 59%,
-    oklch(0.20 0.09 320 / 0.08) 62%,
-    transparent 63%
-  );
-  pointer-events: none;
-}
+
