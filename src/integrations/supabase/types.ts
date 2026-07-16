@@ -14,7 +14,170 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      fixtures: {
+        Row: {
+          away_score: number | null
+          away_team_id: number | null
+          home_score: number | null
+          home_team_id: number | null
+          id: number
+          matchday: number | null
+          season: number | null
+          stage: string | null
+          status: string
+          updated_at: string
+          utc_date: string
+        }
+        Insert: {
+          away_score?: number | null
+          away_team_id?: number | null
+          home_score?: number | null
+          home_team_id?: number | null
+          id: number
+          matchday?: number | null
+          season?: number | null
+          stage?: string | null
+          status: string
+          updated_at?: string
+          utc_date: string
+        }
+        Update: {
+          away_score?: number | null
+          away_team_id?: number | null
+          home_score?: number | null
+          home_team_id?: number | null
+          id?: number
+          matchday?: number | null
+          season?: number | null
+          stage?: string | null
+          status?: string
+          updated_at?: string
+          utc_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fixtures_away_team_id_fkey"
+            columns: ["away_team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fixtures_home_team_id_fkey"
+            columns: ["home_team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      refresh_log: {
+        Row: {
+          error: string | null
+          fixtures_count: number | null
+          id: number
+          ran_at: string
+          standings_count: number | null
+          success: boolean
+        }
+        Insert: {
+          error?: string | null
+          fixtures_count?: number | null
+          id?: number
+          ran_at?: string
+          standings_count?: number | null
+          success: boolean
+        }
+        Update: {
+          error?: string | null
+          fixtures_count?: number | null
+          id?: number
+          ran_at?: string
+          standings_count?: number | null
+          success?: boolean
+        }
+        Relationships: []
+      }
+      standings: {
+        Row: {
+          draw: number
+          form: string | null
+          goal_difference: number
+          goals_against: number
+          goals_for: number
+          lost: number
+          played_games: number
+          points: number
+          position: number
+          team_id: number
+          updated_at: string
+          won: number
+        }
+        Insert: {
+          draw?: number
+          form?: string | null
+          goal_difference?: number
+          goals_against?: number
+          goals_for?: number
+          lost?: number
+          played_games?: number
+          points?: number
+          position: number
+          team_id: number
+          updated_at?: string
+          won?: number
+        }
+        Update: {
+          draw?: number
+          form?: string | null
+          goal_difference?: number
+          goals_against?: number
+          goals_for?: number
+          lost?: number
+          played_games?: number
+          points?: number
+          position?: number
+          team_id?: number
+          updated_at?: string
+          won?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "standings_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: true
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      teams: {
+        Row: {
+          crest: string | null
+          id: number
+          name: string
+          short_name: string | null
+          tla: string | null
+          updated_at: string
+        }
+        Insert: {
+          crest?: string | null
+          id: number
+          name: string
+          short_name?: string | null
+          tla?: string | null
+          updated_at?: string
+        }
+        Update: {
+          crest?: string | null
+          id?: number
+          name?: string
+          short_name?: string | null
+          tla?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
