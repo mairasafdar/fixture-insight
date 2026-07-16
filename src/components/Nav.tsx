@@ -12,7 +12,7 @@ const AUBERGINE = "oklch(0.20 0.09 320)";
 const AUBERGINE_2 = "oklch(0.28 0.11 320)";
 const MAGENTA = "oklch(0.62 0.26 340)";
 
-function Bolt({ className, style }: { className?: string; style?: React.CSSProperties }) {
+function Bolt({ className, style }: { className?: string; style?: CSSProperties }) {
   return (
     <svg viewBox="0 0 24 32" className={className} style={style} aria-hidden="true">
       <path d="M14 0 L2 18 H10 L8 32 L22 12 H13 L16 0 Z" fill="currentColor" />
