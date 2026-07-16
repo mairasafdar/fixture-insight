@@ -9,9 +9,27 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TableRouteImport } from './routes/table'
+import { Route as StorylinesRouteImport } from './routes/storylines'
+import { Route as RadarRouteImport } from './routes/radar'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiPublicHooksRefreshFootballDataRouteImport } from './routes/api/public/hooks/refresh-football-data'
 
+const TableRoute = TableRouteImport.update({
+  id: '/table',
+  path: '/table',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StorylinesRoute = StorylinesRouteImport.update({
+  id: '/storylines',
+  path: '/storylines',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RadarRoute = RadarRouteImport.update({
+  id: '/radar',
+  path: '/radar',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -26,32 +44,81 @@ const ApiPublicHooksRefreshFootballDataRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/radar': typeof RadarRoute
+  '/storylines': typeof StorylinesRoute
+  '/table': typeof TableRoute
   '/api/public/hooks/refresh-football-data': typeof ApiPublicHooksRefreshFootballDataRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/radar': typeof RadarRoute
+  '/storylines': typeof StorylinesRoute
+  '/table': typeof TableRoute
   '/api/public/hooks/refresh-football-data': typeof ApiPublicHooksRefreshFootballDataRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/radar': typeof RadarRoute
+  '/storylines': typeof StorylinesRoute
+  '/table': typeof TableRoute
   '/api/public/hooks/refresh-football-data': typeof ApiPublicHooksRefreshFootballDataRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/api/public/hooks/refresh-football-data'
+  fullPaths:
+    | '/'
+    | '/radar'
+    | '/storylines'
+    | '/table'
+    | '/api/public/hooks/refresh-football-data'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/api/public/hooks/refresh-football-data'
-  id: '__root__' | '/' | '/api/public/hooks/refresh-football-data'
+  to:
+    | '/'
+    | '/radar'
+    | '/storylines'
+    | '/table'
+    | '/api/public/hooks/refresh-football-data'
+  id:
+    | '__root__'
+    | '/'
+    | '/radar'
+    | '/storylines'
+    | '/table'
+    | '/api/public/hooks/refresh-football-data'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  RadarRoute: typeof RadarRoute
+  StorylinesRoute: typeof StorylinesRoute
+  TableRoute: typeof TableRoute
   ApiPublicHooksRefreshFootballDataRoute: typeof ApiPublicHooksRefreshFootballDataRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/table': {
+      id: '/table'
+      path: '/table'
+      fullPath: '/table'
+      preLoaderRoute: typeof TableRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/storylines': {
+      id: '/storylines'
+      path: '/storylines'
+      fullPath: '/storylines'
+      preLoaderRoute: typeof StorylinesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/radar': {
+      id: '/radar'
+      path: '/radar'
+      fullPath: '/radar'
+      preLoaderRoute: typeof RadarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -71,6 +138,9 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  RadarRoute: RadarRoute,
+  StorylinesRoute: StorylinesRoute,
+  TableRoute: TableRoute,
   ApiPublicHooksRefreshFootballDataRoute:
     ApiPublicHooksRefreshFootballDataRoute,
 }
