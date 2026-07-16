@@ -97,10 +97,9 @@
     text-rendering: optimizeLegibility;
   }
   body {
-    /* Lightning-bolt inspired diagonal band overlay on aubergine field */
+    /* faint diagonal PL lightning band on cream */
     background-image:
-      linear-gradient(115deg, transparent 62%, oklch(0.28 0.11 320 / 0.55) 62.5%, oklch(0.28 0.11 320 / 0.55) 64%, transparent 64.5%, transparent 68%, oklch(0.32 0.13 320 / 0.4) 68.2%, oklch(0.32 0.13 320 / 0.4) 69.5%, transparent 69.8%),
-      radial-gradient(900px 500px at 100% 0%, oklch(0.30 0.18 335 / 0.25), transparent 60%);
+      linear-gradient(115deg, transparent 78%, oklch(0.55 0.28 340 / 0.06) 78.3%, oklch(0.55 0.28 340 / 0.06) 80%, transparent 80.3%, transparent 84%, oklch(0.20 0.09 320 / 0.05) 84.2%, oklch(0.20 0.09 320 / 0.05) 85.5%, transparent 85.8%);
     background-attachment: fixed;
     background-repeat: no-repeat;
   }
