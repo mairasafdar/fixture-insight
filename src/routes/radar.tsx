@@ -89,14 +89,12 @@ function RadarPage() {
                             {e.home?.name ?? "?"} <span className="text-muted-foreground">vs</span>{" "}
                             {e.away?.name ?? "?"}
                           </div>
-                          <div className="mt-0.5 flex flex-wrap gap-1 text-[11px] text-muted-foreground">
+                          <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-muted-foreground">
                             {e.score.chips.slice(0, 3).map((c, i) => (
-                              <span key={i}>{c.label}</span>
-                            )).reduce<React.ReactNode[]>((acc, node, i) => {
-                              if (i > 0) acc.push(<span key={`sep-${i}`} className="opacity-40">·</span>);
-                              acc.push(node);
-                              return acc;
-                            }, [])}
+                              <span key={i} className="after:ml-2 after:text-border after:content-['·'] last:after:hidden">
+                                {c.label}
+                              </span>
+                            ))}
                           </div>
                         </div>
                         <div className="shrink-0 rounded-lg bg-grass/10 px-2.5 py-1 font-display text-lg font-bold text-grass">
