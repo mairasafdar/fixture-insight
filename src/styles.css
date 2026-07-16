@@ -42,7 +42,7 @@
   --color-chip: var(--chip);
   --color-chip-foreground: var(--chip-foreground);
 
-  --shadow-glow: 0 0 0 1px oklch(0.72 0.22 145 / 0.25), 0 8px 30px -8px oklch(0.72 0.22 145 / 0.35);
+  --shadow-glow: 0 0 0 1px oklch(0.72 0.28 340 / 0.3), 0 8px 30px -8px oklch(0.72 0.28 340 / 0.45);
 }
 
 :root {
