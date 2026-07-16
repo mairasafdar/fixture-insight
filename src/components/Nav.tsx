@@ -7,58 +7,59 @@ const items = [
   { to: "/storylines", label: "Storylines" },
 ] as const;
 
-// Premier League style lightning bolt
+const AUBERGINE = "oklch(0.20 0.09 320)";
+const AUBERGINE_2 = "oklch(0.28 0.11 320)";
+const MAGENTA = "oklch(0.62 0.26 340)";
+
 function Bolt({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 32" className={className} aria-hidden="true">
-      <path
-        d="M14 0 L2 18 H10 L8 32 L22 12 H13 L16 0 Z"
-        fill="currentColor"
-      />
+      <path d="M14 0 L2 18 H10 L8 32 L22 12 H13 L16 0 Z" fill="currentColor" />
     </svg>
   );
 }
 
-// Stylised PL lion crown
 function LionCrest({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 40 40" className={className} aria-hidden="true">
-      {/* crown */}
-      <path d="M8 12 L12 6 L15 10 L20 4 L25 10 L28 6 L32 12 L30 15 L10 15 Z" fill="currentColor" />
-      {/* mane */}
+      <path d="M6 14 L11 6 L14 12 L20 4 L26 12 L29 6 L34 14 L31 17 L9 17 Z" fill="currentColor" />
       <path
-        d="M10 15 C8 18 7 22 9 26 C11 30 15 32 20 32 C25 32 29 30 31 26 C33 22 32 18 30 15 Z"
+        d="M9 17 C6.5 21 6 26 9 30 C12 33.5 16 35 20 35 C24 35 28 33.5 31 30 C34 26 33.5 21 31 17 Z"
         fill="currentColor"
       />
-      {/* face cut */}
-      <circle cx="17" cy="22" r="1.4" fill="var(--color-background)" />
-      <path d="M22 20 Q25 22 22 25" stroke="var(--color-background)" strokeWidth="1.2" fill="none" strokeLinecap="round" />
+      <circle cx="16.5" cy="24" r="1.6" fill={AUBERGINE} />
+      <path d="M22 22 Q26 24 22 28" stroke={AUBERGINE} strokeWidth="1.4" fill="none" strokeLinecap="round" />
     </svg>
   );
 }
 
 export function Nav({ lastUpdated }: { lastUpdated: string | null }) {
   return (
-    <header className="relative isolate overflow-hidden border-b border-white/10 bg-background">
-      {/* diagonal bolt band */}
+    <header
+      className="relative isolate overflow-hidden text-white"
+      style={{ backgroundColor: AUBERGINE }}
+    >
+      {/* diagonal lightning band */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-y-0 right-0 -z-10 w-[55%] opacity-90"
+        className="pointer-events-none absolute inset-y-0 right-0 -z-0 w-[60%]"
         style={{
-          background:
-            "linear-gradient(115deg, transparent 22%, oklch(0.28 0.11 320) 22.4%, oklch(0.28 0.11 320) 26%, transparent 26.4%, transparent 32%, oklch(0.34 0.14 335 / 0.85) 32.2%, oklch(0.34 0.14 335 / 0.85) 34.5%, transparent 34.9%)",
+          background: `linear-gradient(115deg, transparent 18%, ${AUBERGINE_2} 18.4%, ${AUBERGINE_2} 24%, transparent 24.4%, transparent 30%, ${MAGENTA} 30.2%, ${MAGENTA} 32.5%, transparent 32.9%, transparent 40%, ${AUBERGINE_2} 40.2%, ${AUBERGINE_2} 41.5%, transparent 41.9%)`,
         }}
       />
-      <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-4 px-4 py-4 sm:px-6">
-        <Link to="/" className="flex items-center gap-2.5 text-foreground">
-          <span className="relative grid size-10 place-items-center rounded-md bg-foreground text-background">
-            <LionCrest className="size-6" />
+      <div className="relative mx-auto flex max-w-6xl flex-wrap items-center gap-4 px-4 py-4 sm:px-6">
+        <Link to="/" className="flex items-center gap-3">
+          <span
+            className="grid size-10 place-items-center rounded-sm"
+            style={{ backgroundColor: "white", color: AUBERGINE }}
+          >
+            <LionCrest className="size-7" />
           </span>
           <span className="flex flex-col leading-none">
-            <span className="font-display text-[11px] font-semibold uppercase tracking-[0.25em] text-foreground/70">
+            <span className="text-[10px] font-semibold uppercase tracking-[0.3em] text-white/70">
               Fixture
             </span>
-            <span className="font-display text-2xl font-black uppercase tracking-wide">
+            <span className="font-display text-2xl font-black uppercase tracking-wide text-white">
               Radar
             </span>
           </span>
@@ -68,7 +69,7 @@ export function Nav({ lastUpdated }: { lastUpdated: string | null }) {
             <Link
               key={it.to}
               to={it.to}
-              className="whitespace-nowrap rounded-sm px-3.5 py-1.5 font-display text-sm font-semibold uppercase tracking-wider text-foreground/70 transition-colors hover:text-foreground data-[status=active]:bg-accent data-[status=active]:text-accent-foreground"
+              className="whitespace-nowrap rounded-sm px-3.5 py-2 font-display text-sm font-semibold uppercase tracking-wider text-white/70 transition-colors hover:text-white data-[status=active]:bg-white data-[status=active]:text-[oklch(0.20_0.09_320)]"
               activeProps={{ "data-status": "active" } as never}
               activeOptions={{ exact: it.to === "/" }}
             >
@@ -76,8 +77,8 @@ export function Nav({ lastUpdated }: { lastUpdated: string | null }) {
             </Link>
           ))}
         </nav>
-        <div className="ml-auto flex items-center gap-2 text-[11px] uppercase tracking-wider text-foreground/70">
-          <Bolt className="size-3 text-accent" />
+        <div className="ml-auto flex items-center gap-2 text-[11px] uppercase tracking-wider text-white/70">
+          <Bolt className="size-3" style={{ color: MAGENTA }} />
           <span className="hidden sm:inline">Updated</span>
           <span className="font-mono normal-case">
             {lastUpdated ? formatRelative(lastUpdated) : "—"}
