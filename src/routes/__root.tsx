@@ -85,14 +85,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "Automated Premier League content planning dashboard: ranked upcoming fixtures, rivalries, table stakes and tentpole moments — refreshed every 6 hours.",
       },
       { name: "author", content: "Maira Chaudhary" },
-      { property: "og:title", content: "Fixture Radar" },
+      { property: "og:title", content: "Fixture Radar — Premier League content planning" },
       {
         property: "og:description",
         content:
-          "Automated Premier League content planning: fixtures ranked by rivalry, table stakes, form and tentpole moments.",
+          "Automated Premier League content planning dashboard: ranked upcoming fixtures, rivalries, table stakes and tentpole moments — refreshed every 6 hours.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Fixture Radar — Premier League content planning" },
+      { name: "twitter:description", content: "Automated Premier League content planning dashboard: ranked upcoming fixtures, rivalries, table stakes and tentpole moments — refreshed every 6 hours." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/dac14566-bc87-4c8c-afcf-133922f28452/id-preview-b227c920--d392c887-12ee-44fa-a07a-af1c30be65dc.lovable.app-1784239797784.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/dac14566-bc87-4c8c-afcf-133922f28452/id-preview-b227c920--d392c887-12ee-44fa-a07a-af1c30be65dc.lovable.app-1784239797784.png" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
