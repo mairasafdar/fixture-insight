@@ -30,15 +30,9 @@ export async function fetchStandings(): Promise<StandingRow[]> {
 }
 
 export async function fetchLastUpdated(): Promise<string | null> {
-  const { data, error } = await supabase
-    .from("refresh_log")
-    .select("ran_at")
-    .eq("success", true)
-    .order("ran_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+  const { data, error } = await (supabase as any).rpc("get_last_refresh");
   if (error) return null;
-  return data?.ran_at ?? null;
+  return (data as string | null) ?? null;
 }
 
 export async function fetchAllData() {
