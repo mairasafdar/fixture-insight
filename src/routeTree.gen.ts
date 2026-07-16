@@ -10,33 +10,44 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiPublicHooksRefreshFootballDataRouteImport } from './routes/api/public/hooks/refresh-football-data'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicHooksRefreshFootballDataRoute =
+  ApiPublicHooksRefreshFootballDataRouteImport.update({
+    id: '/api/public/hooks/refresh-football-data',
+    path: '/api/public/hooks/refresh-football-data',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/api/public/hooks/refresh-football-data': typeof ApiPublicHooksRefreshFootballDataRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/api/public/hooks/refresh-football-data': typeof ApiPublicHooksRefreshFootballDataRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/api/public/hooks/refresh-football-data': typeof ApiPublicHooksRefreshFootballDataRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/api/public/hooks/refresh-football-data'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/api/public/hooks/refresh-football-data'
+  id: '__root__' | '/' | '/api/public/hooks/refresh-football-data'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ApiPublicHooksRefreshFootballDataRoute: typeof ApiPublicHooksRefreshFootballDataRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +59,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/refresh-football-data': {
+      id: '/api/public/hooks/refresh-football-data'
+      path: '/api/public/hooks/refresh-football-data'
+      fullPath: '/api/public/hooks/refresh-football-data'
+      preLoaderRoute: typeof ApiPublicHooksRefreshFootballDataRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ApiPublicHooksRefreshFootballDataRoute:
+    ApiPublicHooksRefreshFootballDataRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
