@@ -1,0 +1,1 @@
+ALTER TABLE public.marquee_players ADD CONSTRAINT marquee_players_name_team_unique UNIQUE (player_name, team_id);
