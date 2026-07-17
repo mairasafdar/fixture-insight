@@ -66,12 +66,13 @@ export type Enriched = {
 
 // Component weight caps (must total 100)
 export const WEIGHTS = {
-  rivalry: 30,
+  rivalry: 25,
   tableStakes: 25,
-  star: 20,
+  star: 25,
   tentpole: 15,
   form: 10,
 } as const;
+
 
 const BOXING_MONTH_START = "12-24";
 const BOXING_MONTH_END = "01-02";
@@ -120,14 +121,20 @@ export function scoreFixture(args: {
   // Rivalry (cap 30)
   const rivalry = getRivalry(home?.tla, away?.tla);
   const rivalryPts = rivalry ? Math.min(WEIGHTS.rivalry, Math.round((rivalry.score * WEIGHTS.rivalry) / 35)) : 0;
+
   if (rivalry) {
     chips.push({ label: rivalry.label, kind: "rivalry", points: rivalryPts });
     angles.push(`${rivalry.label}: ${rivalry.blurb}`);
   }
 
-  // Table stakes (cap 25)
+  // Table stakes (cap 25) — only meaningful once the table has settled
   let tablePts = 0;
-  if (homeStanding && awayStanding) {
+  const tableSettled =
+    !!homeStanding &&
+    !!awayStanding &&
+    homeStanding.played_games >= 5 &&
+    awayStanding.played_games >= 5;
+  if (tableSettled && homeStanding && awayStanding) {
     const gap = Math.abs(homeStanding.points - awayStanding.points);
     const topFour = homeStanding.position <= 4 && awayStanding.position <= 4;
     const bottomFive = homeStanding.position >= 16 && awayStanding.position >= 16;
@@ -153,13 +160,14 @@ export function scoreFixture(args: {
         `Relegation six-pointer: both sides in the bottom five (${homeStanding.position}th vs ${awayStanding.position}th).`,
       );
     }
-    if (gap <= 3 && homeStanding.played_games > 3) {
+    if (gap <= 3) {
       const bonus = 6;
       tablePts = Math.min(WEIGHTS.tableStakes, tablePts + bonus);
       chips.push({ label: `${gap}-pt gap`, kind: "table", points: bonus });
       angles.push(`Tight on points: just ${gap} between them going into kickoff.`);
     }
   }
+
 
   // Star power (cap 20)
   let starPts = 0;

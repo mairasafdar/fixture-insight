@@ -15,9 +15,9 @@ export const Route = createFileRoute("/about")({
 });
 
 const rows = [
-  { label: "Rivalry", cap: 30, blurb: "Derbies and classic rivalries with a hardcoded matrix." },
-  { label: "Table stakes", cap: 25, blurb: "Top-4 clashes, 1st vs 2nd, relegation six-pointers, tight points gaps." },
-  { label: "Star power", cap: 20, blurb: "Marquee players on show. Tier 1 = 10 pts each, Tier 2 = 5 pts, capped at 20." },
+  { label: "Rivalry", cap: 25, blurb: "Derbies and classic rivalries with a hardcoded matrix." },
+  { label: "Table stakes", cap: 25, blurb: "Top-4 clashes, 1st vs 2nd, relegation six-pointers, tight points gaps. Activates once teams have played 5+ games." },
+  { label: "Star power", cap: 25, blurb: "Marquee players on show. Tier 1 = 10 pts each, Tier 2 = 5 pts, capped at 25." },
   { label: "Tentpole", cap: 15, blurb: "Opening weekend, Boxing Day, festive fixtures, final day." },
   { label: "Form", cap: 10, blurb: "Either team on a 4+ game winning or unbeaten streak." },
 ];
