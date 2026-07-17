@@ -98,7 +98,7 @@ function RadarPage() {
                           </div>
                         </div>
                         <div className="shrink-0 rounded-lg bg-grass/10 px-2.5 py-1 font-display text-lg font-bold text-grass">
-                          {e.score.total}
+                          {Math.round(e.score.total / 10)}<span className="text-xs text-muted-foreground">/10</span>
                         </div>
                       </li>
                     ))}
