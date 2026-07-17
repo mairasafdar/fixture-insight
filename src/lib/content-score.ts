@@ -126,9 +126,14 @@ export function scoreFixture(args: {
     angles.push(`${rivalry.label}: ${rivalry.blurb}`);
   }
 
-  // Table stakes (cap 25)
+  // Table stakes (cap 25) — only meaningful once the table has settled
   let tablePts = 0;
-  if (homeStanding && awayStanding) {
+  const tableSettled =
+    !!homeStanding &&
+    !!awayStanding &&
+    homeStanding.played_games >= 5 &&
+    awayStanding.played_games >= 5;
+  if (tableSettled && homeStanding && awayStanding) {
     const gap = Math.abs(homeStanding.points - awayStanding.points);
     const topFour = homeStanding.position <= 4 && awayStanding.position <= 4;
     const bottomFive = homeStanding.position >= 16 && awayStanding.position >= 16;
@@ -154,13 +159,14 @@ export function scoreFixture(args: {
         `Relegation six-pointer: both sides in the bottom five (${homeStanding.position}th vs ${awayStanding.position}th).`,
       );
     }
-    if (gap <= 3 && homeStanding.played_games > 3) {
+    if (gap <= 3) {
       const bonus = 6;
       tablePts = Math.min(WEIGHTS.tableStakes, tablePts + bonus);
       chips.push({ label: `${gap}-pt gap`, kind: "table", points: bonus });
       angles.push(`Tight on points: just ${gap} between them going into kickoff.`);
     }
   }
+
 
   // Star power (cap 20)
   let starPts = 0;
