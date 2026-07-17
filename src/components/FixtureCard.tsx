@@ -39,10 +39,14 @@ function TeamBadge({ name, crest, tla }: { name: string; crest: string | null; t
 
 function ScoreMeter({ value }: { value: number }) {
   const pct = Math.min(100, Math.max(0, value));
+  const scaled = Math.round(value / 10);
   const hue = pct >= 70 ? "text-grass" : pct >= 40 ? "text-warning" : "text-muted-foreground";
   return (
     <div className="flex flex-col items-end gap-1">
-      <div className={`font-display text-3xl font-bold leading-none ${hue}`}>{value}</div>
+      <div className={`font-display text-3xl font-bold leading-none ${hue}`}>
+        {scaled}
+        <span className="text-lg text-muted-foreground">/10</span>
+      </div>
       <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Content Score</div>
       <div className="mt-1 h-1.5 w-16 overflow-hidden rounded-full bg-secondary">
         <div
