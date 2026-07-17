@@ -39,7 +39,7 @@ function TeamBadge({ name, crest, tla }: { name: string; crest: string | null; t
 
 function ScoreMeter({ value }: { value: number }) {
   const pct = Math.min(100, Math.max(0, value));
-  const scaled = Math.round(value / 10);
+  const scaled = (value / 10).toFixed(1);
   const hue = pct >= 70 ? "text-grass" : pct >= 40 ? "text-warning" : "text-muted-foreground";
   return (
     <div className="flex flex-col items-end gap-1">
