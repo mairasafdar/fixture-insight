@@ -66,12 +66,13 @@ export type Enriched = {
 
 // Component weight caps (must total 100)
 export const WEIGHTS = {
-  rivalry: 30,
+  rivalry: 25,
   tableStakes: 25,
-  star: 20,
+  star: 25,
   tentpole: 15,
   form: 10,
 } as const;
+
 
 const BOXING_MONTH_START = "12-24";
 const BOXING_MONTH_END = "01-02";
