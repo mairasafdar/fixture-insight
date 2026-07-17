@@ -27,7 +27,7 @@ function ThisWeek() {
     return t >= now && t <= in8Days && f.status !== "FINISHED";
   });
 
-  const enriched = enrichFixtures(upcoming, data.teams, data.standings).sort(
+  const enriched = enrichFixtures(upcoming, data.teams, data.standings, data.marquee).sort(
     (a, b) => b.score.total - a.score.total || new Date(a.fixture.utc_date).getTime() - new Date(b.fixture.utc_date).getTime(),
   );
 
