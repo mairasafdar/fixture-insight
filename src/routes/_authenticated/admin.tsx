@@ -1,0 +1,218 @@
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { fetchMarqueePlayers, fetchTeams } from "@/lib/queries";
+import type { MarqueePlayer, TeamLite } from "@/lib/content-score";
+
+export const Route = createFileRoute("/_authenticated/admin")({
+  component: AdminPage,
+  head: () => ({
+    meta: [
+      { title: "Admin — Marquee players" },
+      { name: "description", content: "Manage the marquee player list that drives the Star Power score." },
+    ],
+  }),
+});
+
+function AdminPage() {
+  const navigate = useNavigate();
+  const qc = useQueryClient();
+  const [userId, setUserId] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase.auth.getUser();
+      const uid = data.user?.id ?? null;
+      setUserId(uid);
+      if (!uid) {
+        setIsAdmin(false);
+        return;
+      }
+      const { data: roleData } = await (supabase as any).rpc("has_role", {
+        _user_id: uid,
+        _role: "admin",
+      });
+      setIsAdmin(Boolean(roleData));
+    })();
+  }, []);
+
+  const { data: teams = [] } = useQuery({ queryKey: ["teams"], queryFn: fetchTeams });
+  const { data: players = [] } = useQuery({ queryKey: ["marquee"], queryFn: fetchMarqueePlayers });
+
+  const [name, setName] = useState("");
+  const [teamId, setTeamId] = useState<number | null>(null);
+  const [tier, setTier] = useState<"tier1" | "tier2">("tier2");
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  async function addPlayer(e: React.FormEvent) {
+    e.preventDefault();
+    if (!name.trim() || !teamId) return;
+    setBusy(true);
+    setErr(null);
+    const { error } = await (supabase as any)
+      .from("marquee_players")
+      .insert({ player_name: name.trim(), team_id: teamId, tier });
+    setBusy(false);
+    if (error) {
+      setErr(error.message);
+      return;
+    }
+    setName("");
+    qc.invalidateQueries({ queryKey: ["marquee"] });
+    qc.invalidateQueries({ queryKey: ["fixture-data"] });
+  }
+
+  async function updateTier(id: string, next: "tier1" | "tier2") {
+    const { error } = await (supabase as any).from("marquee_players").update({ tier: next }).eq("id", id);
+    if (error) setErr(error.message);
+    qc.invalidateQueries({ queryKey: ["marquee"] });
+    qc.invalidateQueries({ queryKey: ["fixture-data"] });
+  }
+
+  async function remove(id: string) {
+    const { error } = await (supabase as any).from("marquee_players").delete().eq("id", id);
+    if (error) setErr(error.message);
+    qc.invalidateQueries({ queryKey: ["marquee"] });
+    qc.invalidateQueries({ queryKey: ["fixture-data"] });
+  }
+
+  async function signOut() {
+    await supabase.auth.signOut();
+    navigate({ to: "/auth" });
+  }
+
+  if (isAdmin === null) {
+    return <div className="mx-auto max-w-3xl px-4 py-12 text-sm text-muted-foreground">Checking access…</div>;
+  }
+
+  if (!isAdmin) {
+    return (
+      <div className="mx-auto max-w-2xl px-4 py-12 sm:px-6">
+        <h1 className="font-display text-2xl font-bold">Not an admin yet</h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          You're signed in but don't have the admin role. Grant yourself admin access by
+          running this SQL against the database (one time only):
+        </p>
+        <pre className="mt-4 overflow-x-auto rounded-md border border-border bg-surface-2 p-3 text-[11px]">
+{`insert into public.user_roles (user_id, role)
+values ('${userId ?? "<your-user-id>"}', 'admin');`}
+        </pre>
+        <div className="mt-6 flex gap-2 text-xs">
+          <button onClick={signOut} className="rounded-md border border-border px-3 py-1.5 hover:bg-surface-2">
+            Sign out
+          </button>
+          <Link to="/" className="rounded-md border border-border px-3 py-1.5 hover:bg-surface-2">
+            Home
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  const teamById = new Map<number, TeamLite>(teams.map((t) => [t.id, t]));
+  const grouped = new Map<number, MarqueePlayer[]>();
+  for (const p of players) {
+    if (!grouped.has(p.team_id)) grouped.set(p.team_id, []);
+    grouped.get(p.team_id)!.push(p);
+  }
+
+  return (
+    <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-12">
+      <header className="mb-6 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="font-display text-3xl font-bold tracking-tight">Marquee players</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Tier 1 (global superstar) = 10 pts each · Tier 2 (rising star) = 5 pts each · capped
+            at 20 per fixture. Star Power updates automatically as you edit.
+          </p>
+        </div>
+        <button onClick={signOut} className="rounded-md border border-border px-3 py-1.5 text-xs hover:bg-surface-2">
+          Sign out
+        </button>
+      </header>
+
+      <form onSubmit={addPlayer} className="card-glass mb-8 flex flex-wrap items-end gap-3 p-4">
+        <div className="min-w-40 flex-1">
+          <label className="mb-1 block text-[11px] uppercase tracking-wider text-muted-foreground">Player</label>
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="e.g. Erling Haaland"
+            className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-accent"
+          />
+        </div>
+        <div className="min-w-40 flex-1">
+          <label className="mb-1 block text-[11px] uppercase tracking-wider text-muted-foreground">Club</label>
+          <select
+            value={teamId ?? ""}
+            onChange={(e) => setTeamId(e.target.value ? Number(e.target.value) : null)}
+            className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-accent"
+          >
+            <option value="">Select club…</option>
+            {[...teams].sort((a, b) => a.name.localeCompare(b.name)).map((t) => (
+              <option key={t.id} value={t.id}>{t.name}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="mb-1 block text-[11px] uppercase tracking-wider text-muted-foreground">Tier</label>
+          <select
+            value={tier}
+            onChange={(e) => setTier(e.target.value as "tier1" | "tier2")}
+            className="rounded-md border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-accent"
+          >
+            <option value="tier1">Tier 1 · 10 pts</option>
+            <option value="tier2">Tier 2 · 5 pts</option>
+          </select>
+        </div>
+        <button
+          type="submit"
+          disabled={busy || !name.trim() || !teamId}
+          className="rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground transition hover:opacity-90 disabled:opacity-50"
+        >
+          Add player
+        </button>
+        {err && <div className="w-full text-xs text-destructive">{err}</div>}
+      </form>
+
+      <div className="space-y-6">
+        {[...grouped.entries()]
+          .sort(([a], [b]) => (teamById.get(a)?.name ?? "").localeCompare(teamById.get(b)?.name ?? ""))
+          .map(([tid, list]) => (
+            <section key={tid}>
+              <h2 className="mb-2 flex items-center gap-2 font-display text-sm font-semibold uppercase tracking-wider">
+                {teamById.get(tid)?.crest && (
+                  <img src={teamById.get(tid)!.crest!} alt="" className="size-5" />
+                )}
+                {teamById.get(tid)?.name ?? `Team ${tid}`}
+              </h2>
+              <ul className="divide-y divide-border/60 rounded-md border border-border">
+                {list.map((p) => (
+                  <li key={p.id} className="flex items-center gap-3 px-3 py-2">
+                    <span className="flex-1 text-sm">{p.player_name}</span>
+                    <select
+                      value={p.tier}
+                      onChange={(e) => updateTier(p.id, e.target.value as "tier1" | "tier2")}
+                      className="rounded border border-border bg-surface px-2 py-1 text-xs"
+                    >
+                      <option value="tier1">Tier 1</option>
+                      <option value="tier2">Tier 2</option>
+                    </select>
+                    <button
+                      onClick={() => remove(p.id)}
+                      className="rounded border border-destructive/40 px-2 py-1 text-xs text-destructive hover:bg-destructive/10"
+                    >
+                      Remove
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ))}
+      </div>
+    </div>
+  );
+}
