@@ -121,6 +121,7 @@ export function scoreFixture(args: {
   // Rivalry (cap 30)
   const rivalry = getRivalry(home?.tla, away?.tla);
   const rivalryPts = rivalry ? Math.min(WEIGHTS.rivalry, Math.round((rivalry.score * WEIGHTS.rivalry) / 35)) : 0;
+
   if (rivalry) {
     chips.push({ label: rivalry.label, kind: "rivalry", points: rivalryPts });
     angles.push(`${rivalry.label}: ${rivalry.blurb}`);
