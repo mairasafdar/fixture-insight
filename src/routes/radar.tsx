@@ -36,7 +36,7 @@ function RadarPage() {
   const upcoming = data.fixtures.filter(
     (f) => new Date(f.utc_date).getTime() >= now && f.status !== "FINISHED",
   );
-  const enriched = enrichFixtures(upcoming, data.teams, data.standings);
+  const enriched = enrichFixtures(upcoming, data.teams, data.standings, data.marquee);
   const top20 = [...enriched].sort((a, b) => b.score.total - a.score.total).slice(0, 20);
 
   // Group by year-month
