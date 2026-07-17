@@ -35,13 +35,23 @@ export type StandingRow = {
   form: string | null;
 };
 
+export type MarqueePlayer = {
+  id: string;
+  player_name: string;
+  team_id: number;
+  tier: "tier1" | "tier2";
+};
+
+export type ChipKind = "rivalry" | "table" | "star" | "form" | "tentpole";
+
 export type ScoreBreakdown = {
   total: number;
   rivalry: number;
   tableStakes: number;
+  star: number;
   form: number;
   tentpole: number;
-  chips: Array<{ label: string; kind: "rivalry" | "table" | "form" | "tentpole"; points: number }>;
+  chips: Array<{ label: string; kind: ChipKind; points: number }>;
   angles: string[];
 };
 
@@ -53,6 +63,15 @@ export type Enriched = {
   awayStanding: StandingRow | null;
   score: ScoreBreakdown;
 };
+
+// Component weight caps (must total 100)
+export const WEIGHTS = {
+  rivalry: 30,
+  tableStakes: 25,
+  star: 20,
+  tentpole: 15,
+  form: 10,
+} as const;
 
 const BOXING_MONTH_START = "12-24";
 const BOXING_MONTH_END = "01-02";
@@ -71,20 +90,11 @@ function formStreak(form: string | null): { kind: "W" | "U" | null; length: numb
   const tokens = form.split(/[,\s]/).filter(Boolean);
   if (!tokens.length) return { kind: null, length: 0 };
   let winStreak = 0;
-  let unbeaten = 0;
   for (const t of tokens) {
-    if (t === "W") {
-      winStreak++;
-      unbeaten++;
-    } else {
-      break;
-    }
+    if (t === "W") winStreak++;
+    else break;
   }
-  if (winStreak >= tokens.length) {
-    /* fall through */
-  }
-  // recompute unbeaten independently
-  unbeaten = 0;
+  let unbeaten = 0;
   for (const t of tokens) {
     if (t === "W" || t === "D") unbeaten++;
     else break;
@@ -101,20 +111,21 @@ export function scoreFixture(args: {
   homeStanding: StandingRow | null;
   awayStanding: StandingRow | null;
   allFixtures: FixtureRow[];
+  marqueeByTeam?: Map<number, MarqueePlayer[]>;
 }): ScoreBreakdown {
-  const { fixture, home, away, homeStanding, awayStanding, allFixtures } = args;
+  const { fixture, home, away, homeStanding, awayStanding, allFixtures, marqueeByTeam } = args;
   const chips: ScoreBreakdown["chips"] = [];
   const angles: string[] = [];
 
-  // Rivalry
+  // Rivalry (cap 30)
   const rivalry = getRivalry(home?.tla, away?.tla);
-  const rivalryPts = rivalry ? Math.min(35, rivalry.score) : 0;
+  const rivalryPts = rivalry ? Math.min(WEIGHTS.rivalry, Math.round((rivalry.score * WEIGHTS.rivalry) / 35)) : 0;
   if (rivalry) {
     chips.push({ label: rivalry.label, kind: "rivalry", points: rivalryPts });
     angles.push(`${rivalry.label}: ${rivalry.blurb}`);
   }
 
-  // Table stakes (up to 30)
+  // Table stakes (cap 25)
   let tablePts = 0;
   if (homeStanding && awayStanding) {
     const gap = Math.abs(homeStanding.points - awayStanding.points);
@@ -125,38 +136,64 @@ export function scoreFixture(args: {
       (homeStanding.position === 2 && awayStanding.position === 1);
 
     if (firstVsSecond) {
-      tablePts = Math.max(tablePts, 30);
-      chips.push({ label: "1st vs 2nd", kind: "table", points: 30 });
+      tablePts = Math.max(tablePts, 25);
+      chips.push({ label: "1st vs 2nd", kind: "table", points: 25 });
       angles.push("Summit clash: the top two go head-to-head with the title on the line.");
     } else if (topFour) {
-      tablePts = Math.max(tablePts, 22);
-      chips.push({ label: "Top-4 clash", kind: "table", points: 22 });
+      tablePts = Math.max(tablePts, 18);
+      chips.push({ label: "Top-4 clash", kind: "table", points: 18 });
       angles.push(
         `Champions League race: both sides currently in the top four (${homeStanding.position} vs ${awayStanding.position}).`,
       );
     }
     if (bottomFive) {
-      tablePts = Math.max(tablePts, 20);
-      chips.push({ label: "Relegation six-pointer", kind: "table", points: 20 });
+      tablePts = Math.max(tablePts, 17);
+      chips.push({ label: "Relegation six-pointer", kind: "table", points: 17 });
       angles.push(
         `Relegation six-pointer: both sides in the bottom five (${homeStanding.position}th vs ${awayStanding.position}th).`,
       );
     }
     if (gap <= 3 && homeStanding.played_games > 3) {
-      const bonus = 8;
-      tablePts = Math.min(30, tablePts + bonus);
+      const bonus = 6;
+      tablePts = Math.min(WEIGHTS.tableStakes, tablePts + bonus);
       chips.push({ label: `${gap}-pt gap`, kind: "table", points: bonus });
       angles.push(`Tight on points: just ${gap} between them going into kickoff.`);
     }
   }
 
-  // Form (up to 15)
+  // Star power (cap 20)
+  let starPts = 0;
+  if (marqueeByTeam && (home || away)) {
+    const homeStars = home ? marqueeByTeam.get(home.id) ?? [] : [];
+    const awayStars = away ? marqueeByTeam.get(away.id) ?? [] : [];
+    const all = [...homeStars, ...awayStars];
+    const raw = all.reduce((sum, p) => sum + (p.tier === "tier1" ? 10 : 5), 0);
+    starPts = Math.min(WEIGHTS.star, raw);
+    if (starPts > 0) {
+      const tier1Names = all.filter((p) => p.tier === "tier1").map((p) => p.player_name);
+      const tier2Names = all.filter((p) => p.tier === "tier2").map((p) => p.player_name);
+      const headliners = tier1Names.length ? tier1Names.slice(0, 3) : tier2Names.slice(0, 3);
+      chips.push({
+        label:
+          tier1Names.length > 0
+            ? `Marquee: ${tier1Names.slice(0, 2).join(", ")}${tier1Names.length > 2 ? " +" + (tier1Names.length - 2) : ""}`
+            : `Rising stars: ${tier2Names.slice(0, 2).join(", ")}${tier2Names.length > 2 ? " +" + (tier2Names.length - 2) : ""}`,
+        kind: "star",
+        points: starPts,
+      });
+      angles.push(
+        `Star power on show: ${headliners.join(", ")}${all.length > headliners.length ? " and more" : ""} feature in this one — a shop-window fixture for new fans.`,
+      );
+    }
+  }
+
+  // Form (cap 10)
   let formPts = 0;
   const homeForm = formStreak(homeStanding?.form ?? null);
   const awayForm = formStreak(awayStanding?.form ?? null);
   const best = homeForm.length >= awayForm.length ? { team: home, streak: homeForm } : { team: away, streak: awayForm };
   if (best.streak.kind && best.streak.length >= 4) {
-    formPts = Math.min(15, 6 + (best.streak.length - 4) * 3);
+    formPts = Math.min(WEIGHTS.form, 4 + (best.streak.length - 4) * 2);
     const label = best.streak.kind === "W" ? "winning" : "unbeaten";
     chips.push({
       label: `${best.team?.tla ?? "Team"} on ${best.streak.length}-game ${label} run`,
@@ -168,35 +205,34 @@ export function scoreFixture(args: {
     );
   }
 
-  // Tentpole (up to 20)
+  // Tentpole (cap 15)
   let tentpolePts = 0;
   const d = new Date(fixture.utc_date);
   const seasonMatches = allFixtures.filter((f) => f.season === fixture.season);
   const firstMd = Math.min(...seasonMatches.map((f) => f.matchday ?? Infinity));
   const lastMd = Math.max(...seasonMatches.map((f) => f.matchday ?? -Infinity));
   if (fixture.matchday && fixture.matchday === firstMd) {
-    tentpolePts = Math.max(tentpolePts, 15);
-    chips.push({ label: "Opening weekend", kind: "tentpole", points: 15 });
+    tentpolePts = Math.max(tentpolePts, 12);
+    chips.push({ label: "Opening weekend", kind: "tentpole", points: 12 });
     angles.push("Opening weekend: season storylines start here.");
   }
   if (fixture.matchday && fixture.matchday === lastMd) {
-    tentpolePts = Math.max(tentpolePts, 20);
-    chips.push({ label: "Final day", kind: "tentpole", points: 20 });
+    tentpolePts = Math.max(tentpolePts, 15);
+    chips.push({ label: "Final day", kind: "tentpole", points: 15 });
     angles.push("Final day: last chance for glory, survival or heartbreak.");
   }
   if (isBoxingDay(d)) {
-    tentpolePts = Math.max(tentpolePts, 18);
-    chips.push({ label: "Boxing Day", kind: "tentpole", points: 18 });
+    tentpolePts = Math.max(tentpolePts, 13);
+    chips.push({ label: "Boxing Day", kind: "tentpole", points: 13 });
     angles.push("Boxing Day football: a British holiday tradition.");
   } else if (isFestivePeriod(d)) {
-    tentpolePts = Math.max(tentpolePts, 10);
-    chips.push({ label: "Festive fixture", kind: "tentpole", points: 10 });
+    tentpolePts = Math.max(tentpolePts, 8);
+    chips.push({ label: "Festive fixture", kind: "tentpole", points: 8 });
     angles.push("Festive-period fixture: packed schedule, tired legs, big drama.");
   }
 
-  const total = Math.min(100, rivalryPts + tablePts + formPts + tentpolePts);
+  const total = Math.min(100, rivalryPts + tablePts + starPts + formPts + tentpolePts);
 
-  // Default angle if nothing landed
   if (!angles.length && home && away) {
     angles.push(`${home.name} host ${away.name} in a Premier League fixture.`);
   }
@@ -205,6 +241,7 @@ export function scoreFixture(args: {
     total,
     rivalry: rivalryPts,
     tableStakes: tablePts,
+    star: starPts,
     form: formPts,
     tentpole: tentpolePts,
     chips,
@@ -216,9 +253,15 @@ export function enrichFixtures(
   fixtures: FixtureRow[],
   teams: TeamLite[],
   standings: StandingRow[],
+  marquee: MarqueePlayer[] = [],
 ): Enriched[] {
   const teamById = new Map(teams.map((t) => [t.id, t]));
   const standingById = new Map(standings.map((s) => [s.team_id, s]));
+  const marqueeByTeam = new Map<number, MarqueePlayer[]>();
+  for (const p of marquee) {
+    if (!marqueeByTeam.has(p.team_id)) marqueeByTeam.set(p.team_id, []);
+    marqueeByTeam.get(p.team_id)!.push(p);
+  }
   return fixtures.map((f) => {
     const home = f.home_team_id ? teamById.get(f.home_team_id) ?? null : null;
     const away = f.away_team_id ? teamById.get(f.away_team_id) ?? null : null;
@@ -231,6 +274,7 @@ export function enrichFixtures(
       homeStanding,
       awayStanding,
       allFixtures: fixtures,
+      marqueeByTeam,
     });
     return { fixture: f, home, away, homeStanding, awayStanding, score };
   });
