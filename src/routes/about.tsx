@@ -1,0 +1,65 @@
+import { createFileRoute, Link } from "@tanstack/react-router";
+
+export const Route = createFileRoute("/about")({
+  component: About,
+  head: () => ({
+    meta: [
+      { title: "How scoring works — Fixture Radar" },
+      {
+        name: "description",
+        content:
+          "How the Fixture Radar Content Score works: rivalry, table stakes, star power, tentpole moments and form.",
+      },
+    ],
+  }),
+});
+
+const rows = [
+  { label: "Rivalry", cap: 30, blurb: "Derbies and classic rivalries with a hardcoded matrix." },
+  { label: "Table stakes", cap: 25, blurb: "Top-4 clashes, 1st vs 2nd, relegation six-pointers, tight points gaps." },
+  { label: "Star power", cap: 20, blurb: "Marquee players on show. Tier 1 = 10 pts each, Tier 2 = 5 pts, capped at 20." },
+  { label: "Tentpole", cap: 15, blurb: "Opening weekend, Boxing Day, festive fixtures, final day." },
+  { label: "Form", cap: 10, blurb: "Either team on a 4+ game winning or unbeaten streak." },
+];
+
+function About() {
+  return (
+    <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 sm:py-14">
+      <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">How scoring works</h1>
+      <p className="mt-3 text-muted-foreground">
+        Every Premier League fixture gets an automated 0–100 Content Score, built from five components.
+        Rivalry and table stakes drive engagement with existing fans; star power drives reach with new
+        fans discovering the league; tentpole moments and form handle timing.
+      </p>
+
+      <div className="mt-8 overflow-hidden rounded-lg border border-border">
+        <table className="w-full text-sm">
+          <thead className="bg-surface-2 text-left text-[11px] uppercase tracking-wider text-muted-foreground">
+            <tr>
+              <th className="px-4 py-2">Component</th>
+              <th className="px-4 py-2">Cap</th>
+              <th className="px-4 py-2">What it rewards</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border/60">
+            {rows.map((r) => (
+              <tr key={r.label}>
+                <td className="px-4 py-3 font-medium">{r.label}</td>
+                <td className="px-4 py-3 font-mono text-xs">{r.cap}</td>
+                <td className="px-4 py-3 text-muted-foreground">{r.blurb}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <p className="mt-6 text-xs text-muted-foreground">
+        Star Power is the only component with a manually curated list. The rest computes from
+        football-data.org, auto-refreshed every 6 hours.
+      </p>
+      <div className="mt-8 text-sm">
+        <Link to="/" className="text-accent hover:underline">← Back to This Week</Link>
+      </div>
+    </div>
+  );
+}

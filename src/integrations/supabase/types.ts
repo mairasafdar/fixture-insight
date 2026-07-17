@@ -71,6 +71,41 @@ export type Database = {
           },
         ]
       }
+      marquee_players: {
+        Row: {
+          created_at: string
+          id: string
+          player_name: string
+          team_id: number
+          tier: Database["public"]["Enums"]["player_tier"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          player_name: string
+          team_id: number
+          tier: Database["public"]["Enums"]["player_tier"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          player_name?: string
+          team_id?: number
+          tier?: Database["public"]["Enums"]["player_tier"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marquee_players_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       refresh_log: {
         Row: {
           error: string | null
@@ -178,15 +213,44 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
       get_last_refresh: { Args: never; Returns: string }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "user"
+      player_tier: "tier1" | "tier2"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -313,6 +377,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "user"],
+      player_tier: ["tier1", "tier2"],
+    },
   },
 } as const

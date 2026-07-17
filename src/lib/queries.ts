@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import type { FixtureRow, StandingRow, TeamLite } from "./content-score";
+import type { FixtureRow, MarqueePlayer, StandingRow, TeamLite } from "./content-score";
 
 export async function fetchTeams(): Promise<TeamLite[]> {
   const { data, error } = await supabase.from("teams").select("id, name, short_name, tla, crest");
@@ -29,6 +29,16 @@ export async function fetchStandings(): Promise<StandingRow[]> {
   return (data ?? []) as StandingRow[];
 }
 
+export async function fetchMarqueePlayers(): Promise<MarqueePlayer[]> {
+  const { data, error } = await (supabase as any)
+    .from("marquee_players")
+    .select("id, player_name, team_id, tier")
+    .order("tier", { ascending: true })
+    .order("player_name", { ascending: true });
+  if (error) return [];
+  return (data ?? []) as MarqueePlayer[];
+}
+
 export async function fetchLastUpdated(): Promise<string | null> {
   const { data, error } = await (supabase as any).rpc("get_last_refresh");
   if (error) return null;
@@ -36,11 +46,12 @@ export async function fetchLastUpdated(): Promise<string | null> {
 }
 
 export async function fetchAllData() {
-  const [teams, fixtures, standings, lastUpdated] = await Promise.all([
+  const [teams, fixtures, standings, marquee, lastUpdated] = await Promise.all([
     fetchTeams(),
     fetchFixtures(),
     fetchStandings(),
+    fetchMarqueePlayers(),
     fetchLastUpdated(),
   ]);
-  return { teams, fixtures, standings, lastUpdated };
+  return { teams, fixtures, standings, marquee, lastUpdated };
 }

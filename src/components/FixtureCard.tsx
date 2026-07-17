@@ -3,6 +3,7 @@ import type { Enriched } from "@/lib/content-score";
 const kindStyles: Record<string, string> = {
   rivalry: "bg-destructive/15 text-destructive border-destructive/30",
   table: "bg-grass/15 text-grass border-grass/30",
+  star: "bg-accent/15 text-accent border-accent/30",
   form: "bg-warning/15 text-warning border-warning/30",
   tentpole: "bg-secondary text-secondary-foreground border-border",
 };
