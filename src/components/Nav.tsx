@@ -6,6 +6,7 @@ const items = [
   { to: "/radar", label: "Season Radar" },
   { to: "/table", label: "Table" },
   { to: "/storylines", label: "Storylines" },
+  { to: "/about", label: "About" },
 ] as const;
 
 const AUBERGINE = "oklch(0.20 0.09 320)";
