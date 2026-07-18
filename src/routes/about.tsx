@@ -57,9 +57,21 @@ function About() {
         Star Power is the only component with a manually curated list. The rest computes from
         football-data.org, auto-refreshed every 6 hours.
       </p>
+
+      <h2 className="mt-10 font-display text-2xl font-bold tracking-tight">Sponsor Lens</h2>
+      <p className="mt-2 text-sm text-muted-foreground">
+        Sponsor Lens re-views the season for a chosen sponsor brand. Every fixture involving their
+        sponsored club(s) gets a Hospitality Score (0–100), driven by kickoff timing (weekend
+        afternoons win), opponent quality (marquee opponents and rivalries), league stakes, and
+        tentpole weekends. Any fixture against a club sponsored by a rival brand or category is
+        flagged as a "category clash" — the sharpest hospitality moments of the season.
+      </p>
+
       <div className="mt-8 text-sm">
         <Link to="/" className="text-accent hover:underline">← Back to This Week</Link>
       </div>
     </div>
   );
 }
+
+
