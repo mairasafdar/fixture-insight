@@ -133,6 +133,48 @@ export type Database = {
         }
         Relationships: []
       }
+      sponsor_profiles: {
+        Row: {
+          brand_name: string
+          category: string
+          created_at: string
+          id: string
+          is_example: boolean
+          notes: string | null
+          rival_brands: string[]
+          rival_categories: string[]
+          sponsorship_type: string
+          team_ids: number[]
+          updated_at: string
+        }
+        Insert: {
+          brand_name: string
+          category: string
+          created_at?: string
+          id?: string
+          is_example?: boolean
+          notes?: string | null
+          rival_brands?: string[]
+          rival_categories?: string[]
+          sponsorship_type: string
+          team_ids?: number[]
+          updated_at?: string
+        }
+        Update: {
+          brand_name?: string
+          category?: string
+          created_at?: string
+          id?: string
+          is_example?: boolean
+          notes?: string | null
+          rival_brands?: string[]
+          rival_categories?: string[]
+          sponsorship_type?: string
+          team_ids?: number[]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       standings: {
         Row: {
           draw: number
