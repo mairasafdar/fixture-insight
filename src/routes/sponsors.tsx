@@ -66,8 +66,8 @@ function SponsorLens() {
   }, [base]);
 
   const teamById = useMemo(() => {
-    const m = new Map<number, (typeof base extends infer T ? T : never)>();
-    return base ? new Map(base.teams.map((t) => [t.id, t])) : m;
+    if (!base) return new Map<number, (typeof base extends { teams: (infer T)[] } ? T : never)>();
+    return new Map(base.teams.map((t) => [t.id, t]));
   }, [base]);
 
   if (bLoading || sLoading) return <PageState label="Loading Sponsor Lens…" />;
