@@ -4,6 +4,7 @@ import { Link } from "@tanstack/react-router";
 const items = [
   { to: "/", label: "This Week" },
   { to: "/radar", label: "Season Radar" },
+  { to: "/sponsors", label: "Sponsor Lens" },
   { to: "/table", label: "Table" },
   { to: "/storylines", label: "Storylines" },
   { to: "/about", label: "About" },

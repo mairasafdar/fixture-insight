@@ -1,5 +1,16 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { FixtureRow, MarqueePlayer, StandingRow, TeamLite } from "./content-score";
+import type { SponsorProfile } from "./sponsor-types";
+
+export async function fetchSponsorProfiles(): Promise<SponsorProfile[]> {
+  const { data, error } = await (supabase as any)
+    .from("sponsor_profiles")
+    .select("id, brand_name, category, sponsorship_type, team_ids, rival_brands, rival_categories, is_example, notes")
+    .order("brand_name", { ascending: true });
+  if (error) return [];
+  return (data ?? []) as SponsorProfile[];
+}
+
 
 export async function fetchTeams(): Promise<TeamLite[]> {
   const { data, error } = await supabase.from("teams").select("id, name, short_name, tla, crest");
