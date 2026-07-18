@@ -6,7 +6,7 @@ import { fetchSponsorProfiles, fetchTeams } from "@/lib/queries";
 import type { SponsorProfile, SponsorshipType } from "@/lib/sponsor-types";
 import { SPONSORSHIP_TYPE_LABEL } from "@/lib/sponsor-types";
 
-export const Route = createFileRoute("/_authenticated/sponsors")({
+export const Route = createFileRoute("/_authenticated/manage-sponsors")({
   component: ManageSponsors,
   head: () => ({
     meta: [{ title: "Manage sponsors — Fixture Radar" }],
