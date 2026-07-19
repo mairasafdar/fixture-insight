@@ -403,7 +403,19 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_sponsor_engagement: {
+        Args: { _sponsor_id: string }
+        Returns: {
+          angle_clicks: number
+          avg_angle_dwell_ms: number
+          avg_card_dwell_ms: number
+          card_clicks: number
+          fixture_id: number
+          matchup: string
+          total_clicks: number
+          utc_date: string
+        }[]
+      }
     }
     Enums: {
       app_role: "admin" | "user"
