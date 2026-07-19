@@ -292,7 +292,10 @@ function buildSummary(
   e: ReturnType<typeof enrichFixtures>[number],
   hospitality: ReturnType<typeof scoreHospitality> | null,
   sponsorName: string | null,
+  emv: ReturnType<typeof estimateMediaValue>,
+  fit: ReturnType<typeof estimateAudienceFit> | null,
 ): string {
+
   const lines: string[] = [];
   if (sponsorName) lines.push(`SPONSOR LENS · ${sponsorName}`);
   lines.push(`${e.home?.name ?? "?"} vs ${e.away?.name ?? "?"}`);
