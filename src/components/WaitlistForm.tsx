@@ -46,7 +46,7 @@ export function WaitlistForm({
 
   return (
     <form
-      className={compact ? "flex flex-col gap-2 sm:flex-row" : "grid gap-2"}
+      className={compact ? "flex w-full flex-col gap-2" : "grid gap-2"}
       onSubmit={(e) => {
         e.preventDefault();
         mutation.mutate({ email, company: company || undefined, role: role || undefined });
@@ -58,7 +58,7 @@ export function WaitlistForm({
         placeholder="Work email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
-        className="flex-1 rounded-md border border-border bg-background px-3 py-2 text-sm focus:border-accent focus:outline-none"
+        className="w-full min-w-0 rounded-md border border-border bg-background px-3 py-2 text-sm focus:border-accent focus:outline-none"
       />
       {!compact && (
         <>
@@ -81,7 +81,7 @@ export function WaitlistForm({
       <button
         type="submit"
         disabled={mutation.isPending}
-        className="rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground hover:opacity-90 disabled:opacity-50"
+        className="w-full whitespace-nowrap rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground hover:opacity-90 disabled:opacity-50"
       >
         {mutation.isPending ? "Joining…" : `Join ${tierLabel} waitlist`}
       </button>
