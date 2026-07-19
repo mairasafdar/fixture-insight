@@ -37,6 +37,7 @@ function RadarPage() {
     (f) => new Date(f.utc_date).getTime() >= now && f.status !== "FINISHED",
   );
   const enriched = enrichFixtures(upcoming, data.teams, data.standings, data.marquee);
+  const maxScore = maxAttainable(data.standings);
   const top20 = [...enriched].sort((a, b) => b.score.total - a.score.total).slice(0, 40);
 
   // Group by year-month
