@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { fetchAllData } from "@/lib/queries";
-import { enrichFixtures } from "@/lib/content-score";
+import { enrichFixtures, maxAttainable } from "@/lib/content-score";
 import { FixtureCard } from "@/components/FixtureCard";
 import { PageState } from "@/components/PageState";
 
@@ -32,6 +32,7 @@ function ThisWeek() {
   );
 
   const hasStandings = data.standings.length > 0;
+  const maxScore = maxAttainable(data.standings);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
@@ -56,7 +57,7 @@ function ThisWeek() {
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
           {enriched.map((e, i) => (
-            <FixtureCard key={e.fixture.id} e={e} rank={i + 1} />
+            <FixtureCard key={e.fixture.id} e={e} rank={i + 1} maxScore={maxScore} />
           ))}
         </div>
       )}

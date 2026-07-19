@@ -1,5 +1,6 @@
 import type { Enriched } from "@/lib/content-score";
 
+
 const kindStyles: Record<string, string> = {
   rivalry: "bg-destructive/15 text-destructive border-destructive/30",
   table: "bg-grass/15 text-grass border-grass/30",
@@ -37,9 +38,9 @@ function TeamBadge({ name, crest, tla }: { name: string; crest: string | null; t
   );
 }
 
-function ScoreMeter({ value }: { value: number }) {
-  const pct = Math.min(100, Math.max(0, value));
-  const scaled = (value / 10).toFixed(1);
+function ScoreMeter({ value, max }: { value: number; max: number }) {
+  const pct = Math.min(100, Math.max(0, (value / max) * 100));
+  const scaled = ((value / max) * 10).toFixed(1);
   const hue = pct >= 70 ? "text-grass" : pct >= 40 ? "text-warning" : "text-muted-foreground";
   return (
     <div className="flex flex-col items-end gap-1">
@@ -58,7 +59,7 @@ function ScoreMeter({ value }: { value: number }) {
   );
 }
 
-export function FixtureCard({ e, rank }: { e: Enriched; rank?: number }) {
+export function FixtureCard({ e, rank, maxScore = 100 }: { e: Enriched; rank?: number; maxScore?: number }) {
   const { fixture, home, away, score } = e;
   return (
     <article className="card-glass group relative overflow-hidden p-5 transition hover:border-grass/40 hover:shadow-glow">
@@ -77,7 +78,7 @@ export function FixtureCard({ e, rank }: { e: Enriched; rank?: number }) {
             {away && <TeamBadge name={away.name} crest={away.crest} tla={away.tla} />}
           </div>
         </div>
-        <ScoreMeter value={score.total} />
+        <ScoreMeter value={score.total} max={maxScore} />
       </div>
 
       {score.chips.length > 0 && (

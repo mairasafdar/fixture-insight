@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { fetchAllData } from "@/lib/queries";
-import { enrichFixtures } from "@/lib/content-score";
+import { enrichFixtures, maxAttainable } from "@/lib/content-score";
 import { PageState } from "@/components/PageState";
 
 export const Route = createFileRoute("/radar")({
@@ -37,6 +37,7 @@ function RadarPage() {
     (f) => new Date(f.utc_date).getTime() >= now && f.status !== "FINISHED",
   );
   const enriched = enrichFixtures(upcoming, data.teams, data.standings, data.marquee);
+  const maxScore = maxAttainable(data.standings);
   const top20 = [...enriched].sort((a, b) => b.score.total - a.score.total).slice(0, 40);
 
   // Group by year-month
@@ -98,7 +99,7 @@ function RadarPage() {
                           </div>
                         </div>
                         <div className="shrink-0 rounded-lg bg-grass/10 px-2.5 py-1 font-display text-lg font-bold text-grass">
-                          {(e.score.total / 10).toFixed(1)}<span className="text-xs text-muted-foreground">/10</span>
+                          {((e.score.total / maxScore) * 10).toFixed(1)}<span className="text-xs text-muted-foreground">/10</span>
                         </div>
                       </li>
                     ))}
