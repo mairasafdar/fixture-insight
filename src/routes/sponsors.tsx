@@ -150,8 +150,16 @@ function SponsorLens() {
                 .map((id) => teamById.get(id)?.name ?? `#${id}`)
                 .join(", ") || "—"}
             </div>
+            <Link
+              to="/sponsor-engagement/$sponsorId"
+              params={{ sponsorId: selected.id }}
+              className="mt-1 inline-block text-accent hover:underline"
+            >
+              📊 View public engagement report →
+            </Link>
           </div>
         )}
+
       </div>
 
       {!selected ? (

@@ -2,8 +2,10 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { fetchMarqueePlayers, fetchTeams } from "@/lib/queries";
+import { fetchMarqueePlayers, fetchTeams, fetchAllData } from "@/lib/queries";
 import type { MarqueePlayer, TeamLite } from "@/lib/content-score";
+import { enrichFixtures, maxAttainable } from "@/lib/content-score";
+
 import { toCsv, downloadCsv } from "@/lib/csv";
 
 import {
@@ -333,7 +335,18 @@ function LinkAnalyticsSection() {
   const [selected, setSelected] = useState<Set<LK>>(new Set(ALL_KEYS));
   const [granularity, setGranularity] = useState<"day" | "week">("day");
 
+  const { data: baseData } = useQuery({ queryKey: ["fixture-data"], queryFn: fetchAllData });
+  const fixtureScoreById = new Map<string, number>();
+  const fixtureMaxScore = baseData ? maxAttainable(baseData.standings) : 100;
+  if (baseData) {
+    const enriched = enrichFixtures(baseData.fixtures, baseData.teams, baseData.standings, baseData.marquee);
+    for (const e of enriched) {
+      fixtureScoreById.set(String(e.fixture.id), (e.score.total / fixtureMaxScore) * 10);
+    }
+  }
+
   const { data: clicks = [], refetch } = useQuery({
+
     queryKey: ["link-clicks", start, end],
     queryFn: async () => {
       const startIso = new Date(start + "T00:00:00Z").toISOString();
@@ -455,15 +468,28 @@ function LinkAnalyticsSection() {
   }
 
   const topFixtures = Array.from(fixtureCounts.entries())
-    .map(([id, v]) => ({
-      id,
-      ...v,
-      total: v.cardClicks + v.angleClicks,
-      avgCardDwellMs: v.cardDwellSamples ? Math.round(v.cardDwellMsTotal / v.cardDwellSamples) : 0,
-      avgAngleDwellMs: v.angleDwellSamples ? Math.round(v.angleDwellMsTotal / v.angleDwellSamples) : 0,
-    }))
-    .sort((a, b) => b.total - a.total || b.avgCardDwellMs - a.avgCardDwellMs)
+    .map(([id, v]) => {
+      const avgCardDwellMs = v.cardDwellSamples ? Math.round(v.cardDwellMsTotal / v.cardDwellSamples) : 0;
+      const avgAngleDwellMs = v.angleDwellSamples ? Math.round(v.angleDwellMsTotal / v.angleDwellSamples) : 0;
+      const clicks = v.cardClicks + 2 * v.angleClicks;
+      const dwellSec = (avgCardDwellMs + avgAngleDwellMs) / 1000;
+      const dwellQuality = 1 + Math.min(1, dwellSec / 20);
+      const contentScore10 = fixtureScoreById.get(id) ?? 0;
+      // Blend: normalized engagement (clicks*dwellQuality) + content score bonus.
+      const engagementWeighted = Number((clicks * dwellQuality + contentScore10).toFixed(2));
+      return {
+        id,
+        ...v,
+        total: v.cardClicks + v.angleClicks,
+        avgCardDwellMs,
+        avgAngleDwellMs,
+        contentScore10: Number(contentScore10.toFixed(2)),
+        engagementWeighted,
+      };
+    })
+    .sort((a, b) => b.engagementWeighted - a.engagementWeighted || b.total - a.total)
     .slice(0, 10);
+
   const topAngles = Array.from(angleCounts.entries())
     .map(([tpl, v]) => ({
       tpl,
@@ -552,8 +578,11 @@ function LinkAnalyticsSection() {
           total_clicks: f.total,
           avg_card_dwell_ms: f.avgCardDwellMs,
           avg_angle_dwell_ms: f.avgAngleDwellMs,
+          content_score_10: f.contentScore10,
+          engagement_weighted_score: f.engagementWeighted,
         })),
-        ["rank", "fixture_id", "matchup", "card_clicks", "angle_clicks", "total_clicks", "avg_card_dwell_ms", "avg_angle_dwell_ms"],
+        ["rank", "fixture_id", "matchup", "card_clicks", "angle_clicks", "total_clicks", "avg_card_dwell_ms", "avg_angle_dwell_ms", "content_score_10", "engagement_weighted_score"],
+
       ),
     );
   }
@@ -740,16 +769,20 @@ function LinkAnalyticsSection() {
                   <span className="w-6 font-mono text-xs text-muted-foreground">#{i + 1}</span>
                   <div className="flex-1 truncate">
                     <div className="truncate">{f.matchup}</div>
-                    {(f.avgCardDwellMs > 0 || f.avgAngleDwellMs > 0) && (
-                      <div className="text-[10px] text-muted-foreground">
-                        avg dwell {(f.avgCardDwellMs / 1000).toFixed(1)}s card · {(f.avgAngleDwellMs / 1000).toFixed(1)}s angle
-                      </div>
-                    )}
+                    <div className="text-[10px] text-muted-foreground">
+                      {(f.avgCardDwellMs > 0 || f.avgAngleDwellMs > 0) && (
+                        <>avg dwell {(f.avgCardDwellMs / 1000).toFixed(1)}s card · {(f.avgAngleDwellMs / 1000).toFixed(1)}s angle · </>
+                      )}
+                      content {f.contentScore10.toFixed(1)}/10
+                    </div>
                   </div>
                   <span className="font-mono text-xs text-muted-foreground">
                     {f.cardClicks}c · {f.angleClicks}a
                   </span>
-                  <span className="w-8 text-right font-display font-semibold">{f.total}</span>
+                  <span className="w-10 text-right font-display font-semibold" title="engagement-weighted">
+                    {f.engagementWeighted.toFixed(1)}
+                  </span>
+
                 </li>
               ))}
             </ul>

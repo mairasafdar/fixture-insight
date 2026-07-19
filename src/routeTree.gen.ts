@@ -20,6 +20,7 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SponsorFixtureIdRouteImport } from './routes/sponsor-fixture.$id'
+import { Route as SponsorEngagementSponsorIdRouteImport } from './routes/sponsor-engagement.$sponsorId'
 import { Route as AuthenticatedManageSponsorsRouteImport } from './routes/_authenticated/manage-sponsors'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as ApiPublicHooksRefreshFootballDataRouteImport } from './routes/api/public/hooks/refresh-football-data'
@@ -78,6 +79,12 @@ const SponsorFixtureIdRoute = SponsorFixtureIdRouteImport.update({
   path: '/sponsor-fixture/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SponsorEngagementSponsorIdRoute =
+  SponsorEngagementSponsorIdRouteImport.update({
+    id: '/sponsor-engagement/$sponsorId',
+    path: '/sponsor-engagement/$sponsorId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthenticatedManageSponsorsRoute =
   AuthenticatedManageSponsorsRouteImport.update({
     id: '/manage-sponsors',
@@ -108,6 +115,7 @@ export interface FileRoutesByFullPath {
   '/table': typeof TableRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/manage-sponsors': typeof AuthenticatedManageSponsorsRoute
+  '/sponsor-engagement/$sponsorId': typeof SponsorEngagementSponsorIdRoute
   '/sponsor-fixture/$id': typeof SponsorFixtureIdRoute
   '/api/public/hooks/refresh-football-data': typeof ApiPublicHooksRefreshFootballDataRoute
 }
@@ -123,6 +131,7 @@ export interface FileRoutesByTo {
   '/table': typeof TableRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/manage-sponsors': typeof AuthenticatedManageSponsorsRoute
+  '/sponsor-engagement/$sponsorId': typeof SponsorEngagementSponsorIdRoute
   '/sponsor-fixture/$id': typeof SponsorFixtureIdRoute
   '/api/public/hooks/refresh-football-data': typeof ApiPublicHooksRefreshFootballDataRoute
 }
@@ -140,6 +149,7 @@ export interface FileRoutesById {
   '/table': typeof TableRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/manage-sponsors': typeof AuthenticatedManageSponsorsRoute
+  '/sponsor-engagement/$sponsorId': typeof SponsorEngagementSponsorIdRoute
   '/sponsor-fixture/$id': typeof SponsorFixtureIdRoute
   '/api/public/hooks/refresh-football-data': typeof ApiPublicHooksRefreshFootballDataRoute
 }
@@ -157,6 +167,7 @@ export interface FileRouteTypes {
     | '/table'
     | '/admin'
     | '/manage-sponsors'
+    | '/sponsor-engagement/$sponsorId'
     | '/sponsor-fixture/$id'
     | '/api/public/hooks/refresh-football-data'
   fileRoutesByTo: FileRoutesByTo
@@ -172,6 +183,7 @@ export interface FileRouteTypes {
     | '/table'
     | '/admin'
     | '/manage-sponsors'
+    | '/sponsor-engagement/$sponsorId'
     | '/sponsor-fixture/$id'
     | '/api/public/hooks/refresh-football-data'
   id:
@@ -188,6 +200,7 @@ export interface FileRouteTypes {
     | '/table'
     | '/_authenticated/admin'
     | '/_authenticated/manage-sponsors'
+    | '/sponsor-engagement/$sponsorId'
     | '/sponsor-fixture/$id'
     | '/api/public/hooks/refresh-football-data'
   fileRoutesById: FileRoutesById
@@ -203,6 +216,7 @@ export interface RootRouteChildren {
   SponsorsRoute: typeof SponsorsRoute
   StorylinesRoute: typeof StorylinesRoute
   TableRoute: typeof TableRoute
+  SponsorEngagementSponsorIdRoute: typeof SponsorEngagementSponsorIdRoute
   SponsorFixtureIdRoute: typeof SponsorFixtureIdRoute
   ApiPublicHooksRefreshFootballDataRoute: typeof ApiPublicHooksRefreshFootballDataRoute
 }
@@ -286,6 +300,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SponsorFixtureIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/sponsor-engagement/$sponsorId': {
+      id: '/sponsor-engagement/$sponsorId'
+      path: '/sponsor-engagement/$sponsorId'
+      fullPath: '/sponsor-engagement/$sponsorId'
+      preLoaderRoute: typeof SponsorEngagementSponsorIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/manage-sponsors': {
       id: '/_authenticated/manage-sponsors'
       path: '/manage-sponsors'
@@ -334,6 +355,7 @@ const rootRouteChildren: RootRouteChildren = {
   SponsorsRoute: SponsorsRoute,
   StorylinesRoute: StorylinesRoute,
   TableRoute: TableRoute,
+  SponsorEngagementSponsorIdRoute: SponsorEngagementSponsorIdRoute,
   SponsorFixtureIdRoute: SponsorFixtureIdRoute,
   ApiPublicHooksRefreshFootballDataRoute:
     ApiPublicHooksRefreshFootballDataRoute,

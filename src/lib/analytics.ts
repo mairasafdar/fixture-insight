@@ -7,7 +7,12 @@ export type LinkKey =
   | "fixture-card"
   | "fixture-angle"
   | "fixture-card-dwell"
-  | "fixture-angle-dwell";
+  | "fixture-angle-dwell"
+  | "sponsor-page"
+  | "sponsor-fixture-card"
+  | "sponsor-fixture-card-dwell"
+  | "sponsor-csv-export";
+
 
 function contextString(): string {
   if (typeof window === "undefined") return "";
