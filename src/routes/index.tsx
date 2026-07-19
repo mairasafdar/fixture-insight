@@ -75,12 +75,43 @@ function ThisWeek() {
       {enriched.length === 0 ? (
         <PageState label="No fixtures in the next 8 days." />
       ) : (
-        <div className="grid gap-4 md:grid-cols-2">
-          {enriched.map((e, i) => (
-            <FixtureCard key={e.fixture.id} e={e} rank={i + 1} maxScore={maxScore} />
-          ))}
-        </div>
+        <>
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <div className="text-xs text-muted-foreground">
+              {enriched.length} fixtures · ranked by Content Score
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                const rows = enriched.map((e, i) => ({
+                  rank: i + 1,
+                  kickoff_utc: e.fixture.utc_date,
+                  matchday: e.fixture.matchday ?? "",
+                  home: e.home?.name ?? "",
+                  away: e.away?.name ?? "",
+                  content_score_raw: e.score.total,
+                  content_score_10: ((e.score.total / maxScore) * 10).toFixed(2),
+                  angles: e.score.angles.join(" | "),
+                  chips: e.score.chips.map((c) => `${c.label}(+${c.points})`).join(" | "),
+                }));
+                downloadCsv(
+                  `fixture-radar_this-week_${new Date().toISOString().slice(0, 10)}.csv`,
+                  toCsv(rows),
+                );
+              }}
+              className="rounded-md border border-border bg-surface px-3 py-1.5 text-xs font-medium hover:bg-surface-2"
+            >
+              ⬇ Export CSV
+            </button>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2">
+            {enriched.map((e, i) => (
+              <FixtureCard key={e.fixture.id} e={e} rank={i + 1} maxScore={maxScore} />
+            ))}
+          </div>
+        </>
       )}
+
     </div>
   );
 }
