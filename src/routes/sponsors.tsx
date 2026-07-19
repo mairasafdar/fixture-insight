@@ -7,6 +7,8 @@ import { enrichFixtures } from "@/lib/content-score";
 import { scoreHospitality, sponsorHostFixtures, HOSPITALITY_WEIGHTS } from "@/lib/hospitality-score";
 import { SPONSORSHIP_TYPE_LABEL } from "@/lib/sponsor-types";
 import { PageState } from "@/components/PageState";
+import { toCsv, downloadCsv } from "@/lib/csv";
+
 
 const search = z.object({ sponsor: z.string().optional() });
 
