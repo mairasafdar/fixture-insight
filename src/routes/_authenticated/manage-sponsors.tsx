@@ -27,7 +27,12 @@ function ManageSponsors() {
       const uid = data.user?.id ?? null;
       setUserId(uid);
       if (!uid) return setIsAdmin(false);
-      const { data: r } = await (supabase as any).rpc("has_role", { _user_id: uid, _role: "admin" });
+      const { data: r } = await (supabase as any)
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", uid)
+        .eq("role", "admin")
+        .maybeSingle();
       setIsAdmin(Boolean(r));
     })();
   }, []);
