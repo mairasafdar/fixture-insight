@@ -4,6 +4,17 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchMarqueePlayers, fetchTeams } from "@/lib/queries";
 import type { MarqueePlayer, TeamLite } from "@/lib/content-score";
+import {
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+} from "recharts";
+
 
 export const Route = createFileRoute("/_authenticated/admin")({
   component: AdminPage,
@@ -221,15 +232,34 @@ values ('${userId ?? "<your-user-id>"}', 'admin');`}
   );
 }
 
+const ALL_KEYS = ["linkedin", "contact", "football-data", "fixture-card", "fixture-angle"] as const;
+type LK = (typeof ALL_KEYS)[number];
+
+function toYMD(d: Date): string {
+  return d.toISOString().slice(0, 10);
+}
+
 function LinkAnalyticsSection() {
+  const today = new Date();
+  const defaultStart = new Date(today);
+  defaultStart.setDate(defaultStart.getDate() - 29);
+
+  const [start, setStart] = useState<string>(toYMD(defaultStart));
+  const [end, setEnd] = useState<string>(toYMD(today));
+  const [selected, setSelected] = useState<Set<LK>>(new Set(ALL_KEYS));
+
   const { data: clicks = [] } = useQuery({
-    queryKey: ["link-clicks"],
+    queryKey: ["link-clicks", start, end],
     queryFn: async () => {
+      const startIso = new Date(start + "T00:00:00Z").toISOString();
+      const endIso = new Date(end + "T23:59:59Z").toISOString();
       const { data, error } = await (supabase as any)
         .from("link_clicks")
         .select("id, link_key, href, referrer, created_at")
+        .gte("created_at", startIso)
+        .lte("created_at", endIso)
         .order("created_at", { ascending: false })
-        .limit(200);
+        .limit(2000);
       if (error) throw error;
       return (data ?? []) as Array<{
         id: string;
@@ -241,26 +271,105 @@ function LinkAnalyticsSection() {
     },
   });
 
+  const filtered = clicks.filter((c) => selected.has(c.link_key as LK));
+
   const totals = new Map<string, number>();
   const last7 = new Map<string, number>();
   const cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
-  for (const c of clicks) {
+  for (const c of filtered) {
     totals.set(c.link_key, (totals.get(c.link_key) ?? 0) + 1);
     if (new Date(c.created_at).getTime() >= cutoff) {
       last7.set(c.link_key, (last7.get(c.link_key) ?? 0) + 1);
     }
   }
-  const keys = Array.from(new Set([...totals.keys(), "linkedin", "contact"]));
+  const visibleKeys = ALL_KEYS.filter((k) => selected.has(k));
+
+  // Build daily series
+  const dayMap = new Map<string, Record<string, number>>();
+  const startD = new Date(start);
+  const endD = new Date(end);
+  for (let d = new Date(startD); d <= endD; d.setDate(d.getDate() + 1)) {
+    const key = toYMD(d);
+    const row: Record<string, number> = { date: 0 } as any;
+    (row as any).date = key;
+    for (const k of visibleKeys) row[k] = 0;
+    dayMap.set(key, row);
+  }
+  for (const c of filtered) {
+    const day = c.created_at.slice(0, 10);
+    const row = dayMap.get(day);
+    if (row) row[c.link_key] = ((row[c.link_key] as number) ?? 0) + 1;
+  }
+  const series = Array.from(dayMap.values());
+
+  const colors: Record<LK, string> = {
+    linkedin: "#0A66C2",
+    contact: "#22c55e",
+    "football-data": "#f59e0b",
+    "fixture-card": "#a855f7",
+    "fixture-angle": "#ec4899",
+  };
+
+  function toggle(k: LK) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(k)) next.delete(k);
+      else next.add(k);
+      return next;
+    });
+  }
 
   return (
     <section className="mt-12">
       <h2 className="font-display text-2xl font-bold tracking-tight">Link engagement</h2>
       <p className="mt-1 text-sm text-muted-foreground">
-        Clicks on LinkedIn and Contact links across the site. Last 200 events shown.
+        Clicks across the site including LinkedIn, Contact, fixture cards, and content angles.
       </p>
 
-      <div className="mt-4 grid gap-3 sm:grid-cols-3">
-        {keys.map((k) => (
+      <div className="mt-4 card-glass flex flex-wrap items-end gap-3 p-4">
+        <div>
+          <label className="mb-1 block text-[11px] uppercase tracking-wider text-muted-foreground">From</label>
+          <input
+            type="date"
+            value={start}
+            max={end}
+            onChange={(e) => setStart(e.target.value)}
+            className="rounded-md border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-accent"
+          />
+        </div>
+        <div>
+          <label className="mb-1 block text-[11px] uppercase tracking-wider text-muted-foreground">To</label>
+          <input
+            type="date"
+            value={end}
+            min={start}
+            onChange={(e) => setEnd(e.target.value)}
+            className="rounded-md border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-accent"
+          />
+        </div>
+        <div className="flex flex-wrap gap-1.5">
+          {ALL_KEYS.map((k) => {
+            const on = selected.has(k);
+            return (
+              <button
+                key={k}
+                type="button"
+                onClick={() => toggle(k)}
+                className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
+                  on
+                    ? "border-accent bg-accent/10 text-accent"
+                    : "border-border text-muted-foreground hover:bg-surface-2"
+                }`}
+              >
+                {k}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-3 lg:grid-cols-5">
+        {visibleKeys.map((k) => (
           <div key={k} className="card-glass p-4">
             <div className="text-[11px] uppercase tracking-wider text-muted-foreground">{k}</div>
             <div className="mt-1 font-display text-3xl font-bold">{totals.get(k) ?? 0}</div>
@@ -271,29 +380,65 @@ function LinkAnalyticsSection() {
         ))}
       </div>
 
+      <div className="mt-6 card-glass p-4">
+        <div className="mb-2 text-[11px] uppercase tracking-wider text-muted-foreground">
+          Daily clicks
+        </div>
+        <div className="h-72 w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={series} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
+              <CartesianGrid stroke="hsl(var(--border))" strokeDasharray="3 3" />
+              <XAxis dataKey="date" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
+              <YAxis allowDecimals={false} tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
+              <Tooltip
+                contentStyle={{
+                  background: "hsl(var(--surface))",
+                  border: "1px solid hsl(var(--border))",
+                  borderRadius: 6,
+                  fontSize: 12,
+                }}
+              />
+              <Legend wrapperStyle={{ fontSize: 11 }} />
+              {visibleKeys.map((k) => (
+                <Line
+                  key={k}
+                  type="monotone"
+                  dataKey={k}
+                  stroke={colors[k]}
+                  strokeWidth={2}
+                  dot={false}
+                />
+              ))}
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
       <div className="mt-6 overflow-hidden rounded-md border border-border">
         <table className="w-full text-left text-xs">
           <thead className="bg-surface-2 text-[11px] uppercase tracking-wider text-muted-foreground">
             <tr>
               <th className="px-3 py-2">When</th>
               <th className="px-3 py-2">Link</th>
+              <th className="px-3 py-2">Detail</th>
               <th className="px-3 py-2">Referrer</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border/60">
-            {clicks.slice(0, 50).map((c) => (
+            {filtered.slice(0, 100).map((c) => (
               <tr key={c.id}>
                 <td className="px-3 py-2 whitespace-nowrap">
                   {new Date(c.created_at).toLocaleString("en-GB")}
                 </td>
                 <td className="px-3 py-2 font-medium">{c.link_key}</td>
+                <td className="px-3 py-2 truncate text-muted-foreground max-w-xs">{c.href ?? "—"}</td>
                 <td className="px-3 py-2 truncate text-muted-foreground">{c.referrer ?? "—"}</td>
               </tr>
             ))}
-            {clicks.length === 0 && (
+            {filtered.length === 0 && (
               <tr>
-                <td colSpan={3} className="px-3 py-6 text-center text-muted-foreground">
-                  No clicks tracked yet.
+                <td colSpan={4} className="px-3 py-6 text-center text-muted-foreground">
+                  No clicks in this range.
                 </td>
               </tr>
             )}
@@ -303,3 +448,4 @@ function LinkAnalyticsSection() {
     </section>
   );
 }
+
