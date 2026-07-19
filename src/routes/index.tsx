@@ -422,10 +422,10 @@ function Landing() {
               </Link>
             )}
             <a
-              href="#pricing"
+              href={inquiryMailto()}
               className="rounded-md border border-border bg-surface px-5 py-3 font-display text-sm font-semibold uppercase tracking-wider text-foreground hover:bg-surface-2"
             >
-              Join a waitlist
+              Get in touch
             </a>
           </div>
         </div>
