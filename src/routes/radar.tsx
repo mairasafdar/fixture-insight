@@ -11,7 +11,7 @@ export const Route = createFileRoute("/radar")({
       { title: "Season Radar — Fixture Radar" },
       {
         name: "description",
-        content: "The 20 highest-scoring Premier League fixtures of the season, grouped by month.",
+        content: "The 40 highest-scoring Premier League fixtures of the season, grouped by month.",
       },
     ],
   }),
@@ -37,7 +37,7 @@ function RadarPage() {
     (f) => new Date(f.utc_date).getTime() >= now && f.status !== "FINISHED",
   );
   const enriched = enrichFixtures(upcoming, data.teams, data.standings, data.marquee);
-  const top20 = [...enriched].sort((a, b) => b.score.total - a.score.total).slice(0, 20);
+  const top20 = [...enriched].sort((a, b) => b.score.total - a.score.total).slice(0, 40);
 
   // Group by year-month
   const groups = new Map<string, typeof top20>();
@@ -54,7 +54,7 @@ function RadarPage() {
       <header className="mb-8">
         <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">Season Radar</h1>
         <p className="mt-2 max-w-2xl text-muted-foreground">
-          Twenty tentpole moments in the Premier League season, sorted by month.
+          Forty tentpole moments in the Premier League season, sorted by month.
         </p>
       </header>
 
