@@ -13,7 +13,14 @@ export const Route = createFileRoute("/storylines")({
         name: "description",
         content: "Recent Premier League results with auto-detected upsets, goal fests and streak stories.",
       },
+      { property: "og:title", content: "Storylines — Fixture Radar" },
+      {
+        property: "og:description",
+        content: "Recent Premier League results with auto-detected upsets, goal fests and streaks.",
+      },
+      { property: "og:url", content: "https://fixture-pulse.lovable.app/storylines" },
     ],
+    links: [{ rel: "canonical", href: "https://fixture-pulse.lovable.app/storylines" }],
   }),
 });
 

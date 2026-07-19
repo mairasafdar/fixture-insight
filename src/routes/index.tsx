@@ -7,6 +7,24 @@ import { PageState } from "@/components/PageState";
 
 export const Route = createFileRoute("/")({
   component: ThisWeek,
+  head: () => ({
+    meta: [
+      { title: "Premier League Fixture Radar: This Week" },
+      {
+        name: "description",
+        content:
+          "The next 8 days of Premier League fixtures, ranked by an automated Content Score across rivalry, table stakes, star power, tentpole moments and form.",
+      },
+      { property: "og:title", content: "Premier League Fixture Radar: This Week" },
+      {
+        property: "og:description",
+        content:
+          "The next 8 days of Premier League fixtures, automatically ranked by rivalry, table stakes, star power, tentpoles and form.",
+      },
+      { property: "og:url", content: "https://fixture-pulse.lovable.app/" },
+    ],
+    links: [{ rel: "canonical", href: "https://fixture-pulse.lovable.app/" }],
+  }),
 });
 
 function ThisWeek() {
@@ -38,7 +56,7 @@ function ThisWeek() {
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
       <header className="mb-8">
         <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">
-          This Week
+          Premier League Fixture Radar: This Week
         </h1>
         <p className="mt-2 max-w-2xl text-muted-foreground">
           The next 8 days of Premier League football, ranked by an automated Content Score

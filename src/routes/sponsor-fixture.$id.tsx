@@ -12,11 +12,15 @@ const search = z.object({ sponsor: z.string().optional() });
 export const Route = createFileRoute("/sponsor-fixture/$id")({
   validateSearch: search,
   component: OnePager,
-  head: () => ({
+  head: ({ params }) => ({
     meta: [
-      { title: "Fixture one-pager — Sponsor Lens" },
+      { title: "Fixture one-pager — Fixture Radar" },
       { name: "description", content: "Single-page fixture summary for a sponsor, ready to screenshot." },
+      { property: "og:title", content: "Fixture one-pager — Fixture Radar" },
+      { property: "og:description", content: "Sponsor hospitality summary for a Premier League fixture." },
+      { property: "og:url", content: `https://fixture-pulse.lovable.app/sponsor-fixture/${params.id}` },
     ],
+    links: [{ rel: "canonical", href: `https://fixture-pulse.lovable.app/sponsor-fixture/${params.id}` }],
   }),
 });
 
