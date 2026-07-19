@@ -7,7 +7,7 @@ import { PageState } from "@/components/PageState";
 import { toCsv, downloadCsv } from "@/lib/csv";
 
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/app")({
   component: ThisWeek,
   head: () => ({
     meta: [
