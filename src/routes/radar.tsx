@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { fetchAllData } from "@/lib/queries";
-import { enrichFixtures } from "@/lib/content-score";
+import { enrichFixtures, maxAttainable } from "@/lib/content-score";
 import { PageState } from "@/components/PageState";
 
 export const Route = createFileRoute("/radar")({
