@@ -317,6 +317,12 @@ function OnePager() {
             </ul>
           </div>
         )}
+
+        {agency?.footer_note && (
+          <div className="mt-6 border-t border-border pt-4 text-[11px] italic text-muted-foreground">
+            {agency.footer_note}
+          </div>
+        )}
       </article>
     </div>
   );
