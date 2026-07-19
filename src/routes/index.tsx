@@ -399,8 +399,6 @@ function Landing() {
           </div>
         </div>
       </section>
-        </div>
-      </section>
 
       {/* Closer / summary */}
       <section className="border-b border-border">
