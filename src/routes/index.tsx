@@ -430,9 +430,9 @@ function Landing() {
                 <div className="mt-6">
                   <a
                     href={inquiryMailto(t.name)}
-                    className="block w-full whitespace-nowrap rounded-md bg-accent px-4 py-2 text-center text-sm font-semibold text-accent-foreground hover:opacity-90"
+                    className="block w-full break-words rounded-md bg-accent px-3 py-2 text-center text-sm font-semibold text-accent-foreground hover:opacity-90"
                   >
-                    Share feedback on {t.name}
+                    Share feedback
                   </a>
                 </div>
               </div>
