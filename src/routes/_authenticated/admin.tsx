@@ -335,7 +335,18 @@ function LinkAnalyticsSection() {
   const [selected, setSelected] = useState<Set<LK>>(new Set(ALL_KEYS));
   const [granularity, setGranularity] = useState<"day" | "week">("day");
 
+  const { data: baseData } = useQuery({ queryKey: ["fixture-data"], queryFn: fetchAllData });
+  const fixtureScoreById = new Map<string, number>();
+  const fixtureMaxScore = baseData ? maxAttainable(baseData.standings) : 100;
+  if (baseData) {
+    const enriched = enrichFixtures(baseData.fixtures, baseData.teams, baseData.standings, baseData.marquee);
+    for (const e of enriched) {
+      fixtureScoreById.set(String(e.fixture.id), (e.score.total / fixtureMaxScore) * 10);
+    }
+  }
+
   const { data: clicks = [], refetch } = useQuery({
+
     queryKey: ["link-clicks", start, end],
     queryFn: async () => {
       const startIso = new Date(start + "T00:00:00Z").toISOString();
