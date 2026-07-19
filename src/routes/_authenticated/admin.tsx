@@ -231,7 +231,10 @@ values ('${userId ?? "<your-user-id>"}', 'admin');`}
           ))}
       </div>
 
+      <BackfillSection />
+      <AlertsSection userId={userId} />
       <LinkAnalyticsSection />
+
     </div>
   );
 }
