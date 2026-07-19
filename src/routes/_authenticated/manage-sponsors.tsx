@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchSponsorProfiles, fetchTeams } from "@/lib/queries";
+import { fetchAgencies } from "@/lib/agency-types";
 import type { SponsorProfile, SponsorshipType } from "@/lib/sponsor-types";
 import { SPONSORSHIP_TYPE_LABEL } from "@/lib/sponsor-types";
 
@@ -39,6 +40,7 @@ function ManageSponsors() {
 
   const { data: teams = [] } = useQuery({ queryKey: ["teams"], queryFn: fetchTeams });
   const { data: sponsors = [] } = useQuery({ queryKey: ["sponsors"], queryFn: fetchSponsorProfiles });
+  const { data: agencies = [] } = useQuery({ queryKey: ["agencies"], queryFn: fetchAgencies });
 
   const [form, setForm] = useState<{
     brand_name: string;
