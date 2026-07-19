@@ -387,33 +387,110 @@ function LinkAnalyticsSection() {
     (a.date as string).localeCompare(b.date as string),
   );
 
-  // Drill-downs: top fixtures & top angle templates
-  const fixtureCounts = new Map<string, { matchup: string; cardClicks: number; angleClicks: number }>();
-  const angleCounts = new Map<string, number>();
+  // Drill-downs: top fixtures & top angle templates (with dwell aggregation)
+  type FixEntry = {
+    matchup: string;
+    cardClicks: number;
+    angleClicks: number;
+    cardDwellMsTotal: number;
+    cardDwellSamples: number;
+    angleDwellMsTotal: number;
+    angleDwellSamples: number;
+  };
+  const emptyFix = (matchup: string): FixEntry => ({
+    matchup,
+    cardClicks: 0,
+    angleClicks: 0,
+    cardDwellMsTotal: 0,
+    cardDwellSamples: 0,
+    angleDwellMsTotal: 0,
+    angleDwellSamples: 0,
+  });
+  const fixtureCounts = new Map<string, FixEntry>();
+  type AngleEntry = { clicks: number; dwellMsTotal: number; dwellSamples: number };
+  const angleCounts = new Map<string, AngleEntry>();
+  // Referrer + UTM breakdowns
+  const referrerCounts = new Map<string, number>();
+  const utmSourceCounts = new Map<string, number>();
+
   for (const c of filtered) {
-    if (c.link_key !== "fixture-card" && c.link_key !== "fixture-angle") continue;
-    const parsed = parseFixtureRef(c.href);
+    const ctx = parseContext(c.referrer);
+    referrerCounts.set(referrerHost(ctx.referrer), (referrerCounts.get(referrerHost(ctx.referrer)) ?? 0) + 1);
+    const src = ctx.utm.utm_source ?? "(none)";
+    utmSourceCounts.set(src, (utmSourceCounts.get(src) ?? 0) + 1);
+
+    const isFixtureEvent =
+      c.link_key === "fixture-card" ||
+      c.link_key === "fixture-angle" ||
+      c.link_key === "fixture-card-dwell" ||
+      c.link_key === "fixture-angle-dwell";
+    if (!isFixtureEvent) continue;
+
+    const parsed = parseFixtureRef(stripDwell(c.href));
     if (!parsed) continue;
-    const entry = fixtureCounts.get(parsed.fixtureId) ?? {
-      matchup: parsed.matchup,
-      cardClicks: 0,
-      angleClicks: 0,
-    };
+    const entry = fixtureCounts.get(parsed.fixtureId) ?? emptyFix(parsed.matchup);
+    const dwell = parseDwellMs(c.href);
+
     if (c.link_key === "fixture-card") entry.cardClicks += 1;
-    else entry.angleClicks += 1;
+    else if (c.link_key === "fixture-angle") entry.angleClicks += 1;
+    else if (c.link_key === "fixture-card-dwell" && dwell != null) {
+      entry.cardDwellMsTotal += dwell;
+      entry.cardDwellSamples += 1;
+    } else if (c.link_key === "fixture-angle-dwell" && dwell != null) {
+      entry.angleDwellMsTotal += dwell;
+      entry.angleDwellSamples += 1;
+    }
     fixtureCounts.set(parsed.fixtureId, entry);
-    if (c.link_key === "fixture-angle" && parsed.angle) {
+
+    if ((c.link_key === "fixture-angle" || c.link_key === "fixture-angle-dwell") && parsed.angle) {
       const tpl = angleTemplate(parsed.angle);
-      angleCounts.set(tpl, (angleCounts.get(tpl) ?? 0) + 1);
+      const ae = angleCounts.get(tpl) ?? { clicks: 0, dwellMsTotal: 0, dwellSamples: 0 };
+      if (c.link_key === "fixture-angle") ae.clicks += 1;
+      else if (dwell != null) {
+        ae.dwellMsTotal += dwell;
+        ae.dwellSamples += 1;
+      }
+      angleCounts.set(tpl, ae);
     }
   }
+
   const topFixtures = Array.from(fixtureCounts.entries())
-    .map(([id, v]) => ({ id, ...v, total: v.cardClicks + v.angleClicks }))
-    .sort((a, b) => b.total - a.total)
+    .map(([id, v]) => ({
+      id,
+      ...v,
+      total: v.cardClicks + v.angleClicks,
+      avgCardDwellMs: v.cardDwellSamples ? Math.round(v.cardDwellMsTotal / v.cardDwellSamples) : 0,
+      avgAngleDwellMs: v.angleDwellSamples ? Math.round(v.angleDwellMsTotal / v.angleDwellSamples) : 0,
+    }))
+    .sort((a, b) => b.total - a.total || b.avgCardDwellMs - a.avgCardDwellMs)
     .slice(0, 10);
   const topAngles = Array.from(angleCounts.entries())
+    .map(([tpl, v]) => ({
+      tpl,
+      clicks: v.clicks,
+      avgDwellMs: v.dwellSamples ? Math.round(v.dwellMsTotal / v.dwellSamples) : 0,
+    }))
+    .sort((a, b) => b.clicks - a.clicks || b.avgDwellMs - a.avgDwellMs)
+    .slice(0, 10);
+
+  const topReferrers = Array.from(referrerCounts.entries())
     .sort((a, b) => b[1] - a[1])
     .slice(0, 10);
+  const topUtmSources = Array.from(utmSourceCounts.entries())
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 10);
+
+  // Aggregate dwell for the summary strip.
+  const dwellSummary = { card: { total: 0, n: 0 }, angle: { total: 0, n: 0 } };
+  for (const c of filtered) {
+    const ms = parseDwellMs(c.href);
+    if (ms == null) continue;
+    if (c.link_key === "fixture-card-dwell") { dwellSummary.card.total += ms; dwellSummary.card.n += 1; }
+    else if (c.link_key === "fixture-angle-dwell") { dwellSummary.angle.total += ms; dwellSummary.angle.n += 1; }
+  }
+  const avgCardDwellS = dwellSummary.card.n ? (dwellSummary.card.total / dwellSummary.card.n / 1000).toFixed(1) : "—";
+  const avgAngleDwellS = dwellSummary.angle.n ? (dwellSummary.angle.total / dwellSummary.angle.n / 1000).toFixed(1) : "—";
+
 
   const colors: Record<LK, string> = {
     linkedin: "#0A66C2",
