@@ -32,6 +32,7 @@ function ThisWeek() {
   );
 
   const hasStandings = data.standings.length > 0;
+  const maxScore = maxAttainable(data.standings);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
