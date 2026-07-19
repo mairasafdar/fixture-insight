@@ -7,6 +7,8 @@ import { enrichFixtures } from "@/lib/content-score";
 import { scoreHospitality, sponsorHostFixtures, HOSPITALITY_WEIGHTS } from "@/lib/hospitality-score";
 import { SPONSORSHIP_TYPE_LABEL } from "@/lib/sponsor-types";
 import { PageState } from "@/components/PageState";
+import { toCsv, downloadCsv } from "@/lib/csv";
+
 
 const search = z.object({ sponsor: z.string().optional() });
 
@@ -209,9 +211,42 @@ function SponsorLens() {
           </section>
 
           <section>
-            <h2 className="mb-3 font-display text-xl font-semibold">
-              Full season — {sponsorFixtures.length} fixtures
-            </h2>
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <h2 className="font-display text-xl font-semibold">
+                Full season — {sponsorFixtures.length} fixtures
+              </h2>
+              <button
+                type="button"
+                onClick={() => {
+                  const rows = hospitalityList.map(({ e, h }, i) => {
+                    const opp = h.isHome ? e.away : e.home;
+                    return {
+                      rank: i + 1,
+                      sponsor: selected.brand_name,
+                      kickoff_utc: e.fixture.utc_date,
+                      venue: h.isHome ? "HOME" : "AWAY",
+                      opponent: opp?.name ?? "",
+                      hospitality_score_raw: h.total,
+                      hospitality_score_10: (h.total / 10).toFixed(2),
+                      content_score_10: (e.score.total / 10).toFixed(2),
+                      category_clash: h.sponsorDerby
+                        ? h.sponsorDerby.rivalBrand ?? h.sponsorDerby.rivalCategory
+                        : "",
+                      reasons: h.chips.map((c) => `${c.label}(+${c.points})`).join(" | "),
+                    };
+                  });
+                  const safe = selected.brand_name.replace(/[^a-z0-9]+/gi, "-").toLowerCase();
+                  downloadCsv(
+                    `sponsor-lens_${safe}_${new Date().toISOString().slice(0, 10)}.csv`,
+                    toCsv(rows),
+                  );
+                }}
+                className="rounded-md border border-border bg-surface px-3 py-1.5 text-xs font-medium hover:bg-surface-2"
+              >
+                ⬇ Export CSV
+              </button>
+            </div>
+
             <ul className="divide-y divide-border/50 rounded-lg border border-border">
               {hospitalityList.map(({ e, h }) => {
                 const opp = h.isHome ? e.away : e.home;
