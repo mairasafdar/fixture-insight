@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useState, useMemo } from "react";
 import { z } from "zod";
 import { fetchAllData, fetchSponsorProfiles } from "@/lib/queries";
+import { fetchAgencies } from "@/lib/agency-types";
 import { enrichFixtures } from "@/lib/content-score";
 import { scoreHospitality } from "@/lib/hospitality-score";
 import { estimateMediaValue, estimateAudienceFit, planGuestList, formatGbp } from "@/lib/sponsor-value";
@@ -59,6 +60,7 @@ function OnePager() {
 
   const { data: base, isLoading } = useQuery({ queryKey: ["fixture-data"], queryFn: fetchAllData });
   const { data: sponsors = [] } = useQuery({ queryKey: ["sponsors"], queryFn: fetchSponsorProfiles });
+  const { data: agencies = [] } = useQuery({ queryKey: ["agencies"], queryFn: fetchAgencies });
 
   const enrichedAll = useMemo(() => {
     if (!base) return [];
@@ -72,6 +74,7 @@ function OnePager() {
   if (!e) throw notFound();
 
   const sponsor = sponsors.find((s) => s.id === sponsorId) ?? null;
+  const agency = sponsor?.agency_id ? agencies.find((a) => a.id === sponsor.agency_id) ?? null : null;
   const sponsorTeamIds = new Set(sponsor?.team_ids ?? []);
   const hospitality = sponsor ? scoreHospitality(e, sponsorTeamIds, sponsor, sponsors) : null;
   const emv = estimateMediaValue(e, hospitality);
