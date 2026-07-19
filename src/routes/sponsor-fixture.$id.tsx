@@ -106,7 +106,7 @@ function OnePager() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-12">
-      <div className="mb-4 flex items-center justify-between gap-2 text-sm">
+      <div className="no-print mb-4 flex items-center justify-between gap-2 text-sm">
         <Link
           to="/sponsors"
           search={sponsor ? { sponsor: sponsor.id } : {}}
@@ -114,13 +114,44 @@ function OnePager() {
         >
           ← Back to Sponsor Lens
         </Link>
-        <button
-          onClick={copy}
-          className="rounded-md border border-border bg-surface px-3 py-1.5 text-xs font-semibold uppercase tracking-wider hover:bg-surface-2"
-        >
-          {copied ? "Copied ✓" : "Copy summary"}
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={copy}
+            className="rounded-md border border-border bg-surface px-3 py-1.5 text-xs font-semibold uppercase tracking-wider hover:bg-surface-2"
+          >
+            {copied ? "Copied ✓" : "Copy summary"}
+          </button>
+          <button
+            onClick={() => window.print()}
+            className="rounded-md bg-accent px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-accent-foreground hover:opacity-90"
+          >
+            Download PDF
+          </button>
+        </div>
       </div>
+
+      {agency && (
+        <div
+          className="print-branded-header mb-4 flex items-center justify-between gap-4 rounded-md p-4 text-white"
+          style={{ backgroundColor: agency.primary_color ?? "#37003c" }}
+        >
+          <div className="flex items-center gap-3">
+            {agency.logo_url ? (
+              <img src={agency.logo_url} alt={agency.name} className="max-h-10 max-w-[120px] object-contain" />
+            ) : (
+              <div className="font-display text-xl font-bold">{agency.name}</div>
+            )}
+            <div className="text-xs opacity-80">
+              <div className="font-semibold uppercase tracking-wider">Fixture briefing</div>
+              {agency.contact_email && <div>{agency.contact_email}</div>}
+            </div>
+          </div>
+          <div className="text-right text-[10px] uppercase tracking-widest opacity-80">
+            Prepared for<br />
+            <span className="font-display text-sm font-bold not-italic">{sponsor?.brand_name.replace(/^EXAMPLE — /, "") ?? "—"}</span>
+          </div>
+        </div>
+      )}
 
       <article className="card-glass p-6 sm:p-8">
         <div className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
