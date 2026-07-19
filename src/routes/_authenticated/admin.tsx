@@ -468,15 +468,28 @@ function LinkAnalyticsSection() {
   }
 
   const topFixtures = Array.from(fixtureCounts.entries())
-    .map(([id, v]) => ({
-      id,
-      ...v,
-      total: v.cardClicks + v.angleClicks,
-      avgCardDwellMs: v.cardDwellSamples ? Math.round(v.cardDwellMsTotal / v.cardDwellSamples) : 0,
-      avgAngleDwellMs: v.angleDwellSamples ? Math.round(v.angleDwellMsTotal / v.angleDwellSamples) : 0,
-    }))
-    .sort((a, b) => b.total - a.total || b.avgCardDwellMs - a.avgCardDwellMs)
+    .map(([id, v]) => {
+      const avgCardDwellMs = v.cardDwellSamples ? Math.round(v.cardDwellMsTotal / v.cardDwellSamples) : 0;
+      const avgAngleDwellMs = v.angleDwellSamples ? Math.round(v.angleDwellMsTotal / v.angleDwellSamples) : 0;
+      const clicks = v.cardClicks + 2 * v.angleClicks;
+      const dwellSec = (avgCardDwellMs + avgAngleDwellMs) / 1000;
+      const dwellQuality = 1 + Math.min(1, dwellSec / 20);
+      const contentScore10 = fixtureScoreById.get(id) ?? 0;
+      // Blend: normalized engagement (clicks*dwellQuality) + content score bonus.
+      const engagementWeighted = Number((clicks * dwellQuality + contentScore10).toFixed(2));
+      return {
+        id,
+        ...v,
+        total: v.cardClicks + v.angleClicks,
+        avgCardDwellMs,
+        avgAngleDwellMs,
+        contentScore10: Number(contentScore10.toFixed(2)),
+        engagementWeighted,
+      };
+    })
+    .sort((a, b) => b.engagementWeighted - a.engagementWeighted || b.total - a.total)
     .slice(0, 10);
+
   const topAngles = Array.from(angleCounts.entries())
     .map(([tpl, v]) => ({
       tpl,
