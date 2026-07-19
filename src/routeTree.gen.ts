@@ -19,6 +19,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as IndexRouteImport } from './routes/index'
 import { Route as SponsorFixtureIdRouteImport } from './routes/sponsor-fixture.$id'
 import { Route as SponsorEngagementSponsorIdRouteImport } from './routes/sponsor-engagement.$sponsorId'
 import { Route as AuthenticatedManageSponsorsRouteImport } from './routes/_authenticated/manage-sponsors'
@@ -74,6 +75,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SponsorFixtureIdRoute = SponsorFixtureIdRouteImport.update({
   id: '/sponsor-fixture/$id',
   path: '/sponsor-fixture/$id',
@@ -104,7 +110,7 @@ const ApiPublicHooksRefreshFootballDataRoute =
   } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof AuthenticatedRouteRouteWithChildren
+  '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/app': typeof AppRoute
   '/auth': typeof AuthRoute
@@ -121,7 +127,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/refresh-football-data': typeof ApiPublicHooksRefreshFootballDataRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof AuthenticatedRouteRouteWithChildren
+  '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/app': typeof AppRoute
   '/auth': typeof AuthRoute
@@ -139,6 +145,7 @@ export interface FileRoutesByTo {
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
+  '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/about': typeof AboutRoute
   '/app': typeof AppRoute
@@ -192,6 +199,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/refresh-football-data'
   id:
     | '__root__'
+    | '/'
     | '/_authenticated'
     | '/about'
     | '/app'
@@ -210,6 +218,7 @@ export interface FileRouteTypes {
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
+  IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AboutRoute: typeof AboutRoute
   AppRoute: typeof AppRoute
@@ -297,6 +306,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sponsor-fixture/$id': {
       id: '/sponsor-fixture/$id'
       path: '/sponsor-fixture/$id'
@@ -349,6 +365,7 @@ const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
+  IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AboutRoute: AboutRoute,
   AppRoute: AppRoute,
