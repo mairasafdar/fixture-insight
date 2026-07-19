@@ -63,8 +63,13 @@ function ScoreMeter({ value, max }: { value: number; max: number }) {
 
 export function FixtureCard({ e, rank, maxScore = 100 }: { e: Enriched; rank?: number; maxScore?: number }) {
   const { fixture, home, away, score } = e;
+  const matchup = `${home?.name ?? "?"} vs ${away?.name ?? "?"}`;
+  const fixtureRef = `fixture:${fixture.id}:${matchup}`;
   return (
-    <article className="card-glass group relative overflow-hidden p-5 transition hover:border-grass/40 hover:shadow-glow">
+    <article
+      className="card-glass group relative cursor-pointer overflow-hidden p-5 transition hover:border-grass/40 hover:shadow-glow"
+      onClick={() => logLinkClick("fixture-card", fixtureRef)}
+    >
       {rank !== undefined && (
         <div className="absolute right-4 top-4 font-mono text-xs text-muted-foreground">#{rank}</div>
       )}
@@ -103,9 +108,18 @@ export function FixtureCard({ e, rank, maxScore = 100 }: { e: Enriched; rank?: n
           </div>
           <ul className="space-y-1.5 text-sm text-muted-foreground">
             {score.angles.map((a, i) => (
-              <li key={i} className="flex gap-2">
-                <span className="mt-1.5 size-1 shrink-0 rounded-full bg-grass" />
-                <span>{a}</span>
+              <li key={i}>
+                <button
+                  type="button"
+                  onClick={(ev) => {
+                    ev.stopPropagation();
+                    logLinkClick("fixture-angle", `${fixtureRef}::${a}`);
+                  }}
+                  className="flex w-full gap-2 text-left transition hover:text-foreground"
+                >
+                  <span className="mt-1.5 size-1 shrink-0 rounded-full bg-grass" />
+                  <span>{a}</span>
+                </button>
               </li>
             ))}
           </ul>
@@ -114,3 +128,4 @@ export function FixtureCard({ e, rank, maxScore = 100 }: { e: Enriched; rank?: n
     </article>
   );
 }
+
