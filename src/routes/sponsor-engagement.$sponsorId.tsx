@@ -6,6 +6,7 @@ import { fetchSponsorProfiles } from "@/lib/queries";
 import { PageState } from "@/components/PageState";
 import { toCsv, downloadCsv } from "@/lib/csv";
 import { logLinkClick } from "@/lib/analytics";
+import { getSponsorEngagement } from "@/lib/sponsor-engagement.functions";
 
 type EngagementRow = {
   fixture_id: number;
