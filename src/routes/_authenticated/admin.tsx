@@ -381,7 +381,10 @@ function LinkAnalyticsSection() {
     "football-data": "#f59e0b",
     "fixture-card": "#a855f7",
     "fixture-angle": "#ec4899",
+    "fixture-card-dwell": "#6366f1",
+    "fixture-angle-dwell": "#14b8a6",
   };
+
 
   function toggle(k: LK) {
     setSelected((prev) => {
