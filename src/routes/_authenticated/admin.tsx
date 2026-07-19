@@ -231,7 +231,10 @@ values ('${userId ?? "<your-user-id>"}', 'admin');`}
           ))}
       </div>
 
+      <BackfillSection />
+      <AlertsSection userId={userId} />
       <LinkAnalyticsSection />
+
     </div>
   );
 }
@@ -969,6 +972,187 @@ function DebugEventsPanel() {
           </div>
         </div>
       )}
+    </section>
+  );
+}
+
+function BackfillSection() {
+  const [season, setSeason] = useState<string>("2023");
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<string | null>(null);
+
+  async function run() {
+    setBusy(true);
+    setMsg(null);
+    try {
+      const url = `/api/public/hooks/refresh-football-data?season=${encodeURIComponent(season)}`;
+      const res = await fetch(url, { method: "POST" });
+      const json = await res.json().catch(() => ({}));
+      setMsg(res.ok ? `Backfilled season ${season}: ${json.fixtures ?? 0} fixtures.` : `Failed: ${json.error ?? res.status}`);
+    } catch (e) {
+      setMsg(e instanceof Error ? e.message : String(e));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <section className="mt-12">
+      <h2 className="font-display text-2xl font-bold tracking-tight">Historical backfill</h2>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Pull past-season fixtures + results into the database (standings for that season are the final table, and are not overwritten in the live standings view).
+      </p>
+      <div className="mt-3 flex flex-wrap items-end gap-3 rounded-md border border-border p-4">
+        <div>
+          <label className="mb-1 block text-[11px] uppercase tracking-wider text-muted-foreground">Season (start year)</label>
+          <input
+            value={season}
+            onChange={(e) => setSeason(e.target.value)}
+            placeholder="2023"
+            className="w-32 rounded-md border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-accent"
+          />
+        </div>
+        <button
+          onClick={run}
+          disabled={busy || !season}
+          className="rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground transition hover:opacity-90 disabled:opacity-50"
+        >
+          {busy ? "Backfilling…" : "Run backfill"}
+        </button>
+        {msg && <span className="text-xs text-muted-foreground">{msg}</span>}
+      </div>
+    </section>
+  );
+}
+
+type AlertRuleRow = {
+  id: string;
+  label: string;
+  rule_type: "content_score_threshold" | "marquee_out" | "streak" | "upset" | "fixture_this_week";
+  threshold: number | null;
+  channel: "email" | "slack" | "teams";
+  destination: string;
+  active: boolean;
+  sponsor_id: string | null;
+  created_at: string;
+};
+
+function AlertsSection({ userId }: { userId: string | null }) {
+  const qc = useQueryClient();
+  const { data: rules = [] } = useQuery({
+    queryKey: ["alert_rules"],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from("alert_rules")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as AlertRuleRow[];
+    },
+  });
+
+  const [label, setLabel] = useState("Watchlist");
+  const [ruleType, setRuleType] = useState<AlertRuleRow["rule_type"]>("fixture_this_week");
+  const [channel, setChannel] = useState<AlertRuleRow["channel"]>("slack");
+  const [destination, setDestination] = useState("");
+  const [threshold, setThreshold] = useState<string>("");
+  const [err, setErr] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  async function create(e: React.FormEvent) {
+    e.preventDefault();
+    if (!userId) return;
+    setBusy(true);
+    setErr(null);
+    const { error } = await (supabase as any).from("alert_rules").insert({
+      user_id: userId,
+      label,
+      rule_type: ruleType,
+      channel,
+      destination,
+      threshold: threshold ? Number(threshold) : null,
+      active: true,
+    });
+    setBusy(false);
+    if (error) return setErr(error.message);
+    setDestination("");
+    qc.invalidateQueries({ queryKey: ["alert_rules"] });
+  }
+
+  async function toggle(id: string, active: boolean) {
+    await (supabase as any).from("alert_rules").update({ active }).eq("id", id);
+    qc.invalidateQueries({ queryKey: ["alert_rules"] });
+  }
+  async function remove(id: string) {
+    await (supabase as any).from("alert_rules").delete().eq("id", id);
+    qc.invalidateQueries({ queryKey: ["alert_rules"] });
+  }
+
+  return (
+    <section className="mt-12">
+      <h2 className="font-display text-2xl font-bold tracking-tight">Alert rules</h2>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Get notified when interesting fixtures come up. Evaluator runs every 30 minutes and dedupes per fixture. Email is stubbed for now — Slack and Teams webhooks fire live.
+      </p>
+
+      <form onSubmit={create} className="mt-3 flex flex-wrap items-end gap-3 rounded-md border border-border p-4">
+        <div className="min-w-40 flex-1">
+          <label className="mb-1 block text-[11px] uppercase tracking-wider text-muted-foreground">Label</label>
+          <input value={label} onChange={(e) => setLabel(e.target.value)} className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-accent" />
+        </div>
+        <div>
+          <label className="mb-1 block text-[11px] uppercase tracking-wider text-muted-foreground">Rule</label>
+          <select value={ruleType} onChange={(e) => setRuleType(e.target.value as AlertRuleRow["rule_type"])} className="rounded-md border border-border bg-surface px-3 py-2 text-sm">
+            <option value="fixture_this_week">Fixture in next 8 days</option>
+            <option value="streak">Team on 4-game win streak</option>
+            <option value="content_score_threshold">Content score ≥ threshold</option>
+            <option value="marquee_out">Marquee player ruled out</option>
+            <option value="upset">Upset detected</option>
+          </select>
+        </div>
+        {ruleType === "content_score_threshold" && (
+          <div>
+            <label className="mb-1 block text-[11px] uppercase tracking-wider text-muted-foreground">Threshold (/10)</label>
+            <input value={threshold} onChange={(e) => setThreshold(e.target.value)} placeholder="7.5" className="w-24 rounded-md border border-border bg-surface px-3 py-2 text-sm" />
+          </div>
+        )}
+        <div>
+          <label className="mb-1 block text-[11px] uppercase tracking-wider text-muted-foreground">Channel</label>
+          <select value={channel} onChange={(e) => setChannel(e.target.value as AlertRuleRow["channel"])} className="rounded-md border border-border bg-surface px-3 py-2 text-sm">
+            <option value="slack">Slack webhook</option>
+            <option value="teams">Teams webhook</option>
+            <option value="email">Email</option>
+          </select>
+        </div>
+        <div className="min-w-60 flex-1">
+          <label className="mb-1 block text-[11px] uppercase tracking-wider text-muted-foreground">
+            {channel === "email" ? "Email address" : "Webhook URL"}
+          </label>
+          <input value={destination} onChange={(e) => setDestination(e.target.value)} placeholder={channel === "email" ? "you@example.com" : "https://hooks.slack.com/…"} className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm" />
+        </div>
+        <button type="submit" disabled={busy || !destination} className="rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground disabled:opacity-50">
+          {busy ? "Saving…" : "Add rule"}
+        </button>
+        {err && <div className="w-full text-xs text-destructive">{err}</div>}
+      </form>
+
+      <ul className="mt-3 divide-y divide-border/60 rounded-md border border-border">
+        {rules.length === 0 && <li className="px-3 py-3 text-sm text-muted-foreground">No alert rules yet.</li>}
+        {rules.map((r) => (
+          <li key={r.id} className="flex flex-wrap items-center gap-3 px-3 py-2 text-sm">
+            <span className="font-medium">{r.label}</span>
+            <span className="rounded bg-surface-2 px-2 py-0.5 text-[11px] uppercase tracking-wider">{r.rule_type.replace(/_/g, " ")}</span>
+            <span className="rounded border border-border px-2 py-0.5 text-[11px]">{r.channel}</span>
+            <span className="truncate text-xs text-muted-foreground">{r.destination}</span>
+            <div className="ml-auto flex items-center gap-2">
+              <button onClick={() => toggle(r.id, !r.active)} className={`rounded border px-2 py-1 text-xs ${r.active ? "border-accent text-accent" : "border-border text-muted-foreground"}`}>
+                {r.active ? "Active" : "Paused"}
+              </button>
+              <button onClick={() => remove(r.id)} className="rounded border border-destructive/40 px-2 py-1 text-xs text-destructive hover:bg-destructive/10">Remove</button>
+            </div>
+          </li>
+        ))}
+      </ul>
     </section>
   );
 }

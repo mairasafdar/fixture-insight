@@ -47,22 +47,24 @@ async function fetchFD(path: string, token: string) {
   return res.json();
 }
 
-async function runRefresh() {
+async function runRefresh(season?: number) {
   const token = process.env.FOOTBALL_DATA_API_TOKEN;
   if (!token) throw new Error("FOOTBALL_DATA_API_TOKEN not set");
 
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-  // Fetch matches
-  const matchesJson = (await fetchFD("/competitions/PL/matches", token)) as {
+  const seasonQs = season ? `?season=${season}` : "";
+
+  // Fetch matches (optionally scoped to a past season)
+  const matchesJson = (await fetchFD(`/competitions/PL/matches${seasonQs}`, token)) as {
     matches: Match[];
   };
   const matches = matchesJson.matches ?? [];
 
-  // Fetch standings (may be empty pre-season)
+  // Fetch standings (may be empty pre-season; for past seasons this returns final table)
   let table: StandingRow[] = [];
   try {
-    const standingsJson = (await fetchFD("/competitions/PL/standings", token)) as {
+    const standingsJson = (await fetchFD(`/competitions/PL/standings${seasonQs}`, token)) as {
       standings: Array<{ type: string; table: StandingRow[] }>;
     };
     const total = standingsJson.standings?.find((s) => s.type === "TOTAL");
@@ -118,8 +120,8 @@ async function runRefresh() {
     if (error) throw new Error(`fixtures upsert: ${error.message}`);
   }
 
-  // Replace standings
-  if (table.length) {
+  // Replace standings only for the current season (we don't have a season column on standings)
+  if (!season && table.length) {
     const standingRows = table
       .filter((r) => r.team?.id)
       .map((r) => ({
@@ -148,7 +150,7 @@ async function runRefresh() {
     standings_count: table.length,
   });
 
-  return { fixtures: fixtureRows.length, standings: table.length, teams: teamRows.length };
+  return { season: season ?? "current", fixtures: fixtureRows.length, standings: table.length, teams: teamRows.length };
 }
 
 const corsHeaders = {
@@ -158,11 +160,12 @@ const corsHeaders = {
 };
 
 export const Route = createFileRoute("/api/public/hooks/refresh-football-data")({
+  // @ts-expect-error - `server` is provided at build time by the TanStack Start plugin
   server: {
     handlers: {
       OPTIONS: async () => new Response(null, { status: 204, headers: corsHeaders }),
-      GET: async ({ request }) => handle(request),
-      POST: async ({ request }) => handle(request),
+      GET: async ({ request }: { request: Request }) => handle(request),
+      POST: async ({ request }: { request: Request }) => handle(request),
     },
   },
 });
@@ -198,7 +201,9 @@ async function handle(request: Request) {
     });
   }
   try {
-    const result = await runRefresh();
+    const seasonParam = new URL(request.url).searchParams.get("season");
+    const seasonNum = seasonParam ? Number(seasonParam) : undefined;
+    const result = await runRefresh(Number.isFinite(seasonNum) ? seasonNum : undefined);
     return new Response(JSON.stringify({ ok: true, ...result }), {
       status: 200,
       headers: { "Content-Type": "application/json", ...corsHeaders },

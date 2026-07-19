@@ -50,6 +50,97 @@ export type Database = {
         }
         Relationships: []
       }
+      alert_deliveries: {
+        Row: {
+          dedup_key: string
+          delivered_at: string
+          error: string | null
+          fixture_id: number | null
+          id: string
+          payload: Json
+          rule_id: string
+          status: string
+        }
+        Insert: {
+          dedup_key: string
+          delivered_at?: string
+          error?: string | null
+          fixture_id?: number | null
+          id?: string
+          payload?: Json
+          rule_id: string
+          status?: string
+        }
+        Update: {
+          dedup_key?: string
+          delivered_at?: string
+          error?: string | null
+          fixture_id?: number | null
+          id?: string
+          payload?: Json
+          rule_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alert_deliveries_rule_id_fkey"
+            columns: ["rule_id"]
+            isOneToOne: false
+            referencedRelation: "alert_rules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      alert_rules: {
+        Row: {
+          active: boolean
+          channel: string
+          created_at: string
+          destination: string
+          id: string
+          label: string
+          rule_type: string
+          sponsor_id: string | null
+          threshold: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          active?: boolean
+          channel: string
+          created_at?: string
+          destination: string
+          id?: string
+          label: string
+          rule_type: string
+          sponsor_id?: string | null
+          threshold?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          active?: boolean
+          channel?: string
+          created_at?: string
+          destination?: string
+          id?: string
+          label?: string
+          rule_type?: string
+          sponsor_id?: string | null
+          threshold?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alert_rules_sponsor_id_fkey"
+            columns: ["sponsor_id"]
+            isOneToOne: false
+            referencedRelation: "sponsor_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fixtures: {
         Row: {
           away_score: number | null

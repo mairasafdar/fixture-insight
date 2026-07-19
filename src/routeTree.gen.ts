@@ -26,6 +26,7 @@ import { Route as AuthenticatedManageSponsorsRouteImport } from './routes/_authe
 import { Route as AuthenticatedAgenciesRouteImport } from './routes/_authenticated/agencies'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as ApiPublicHooksRefreshFootballDataRouteImport } from './routes/api/public/hooks/refresh-football-data'
+import { Route as ApiPublicHooksEvaluateAlertsRouteImport } from './routes/api/public/hooks/evaluate-alerts'
 
 const TableRoute = TableRouteImport.update({
   id: '/table',
@@ -114,6 +115,12 @@ const ApiPublicHooksRefreshFootballDataRoute =
     path: '/api/public/hooks/refresh-football-data',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksEvaluateAlertsRoute =
+  ApiPublicHooksEvaluateAlertsRouteImport.update({
+    id: '/api/public/hooks/evaluate-alerts',
+    path: '/api/public/hooks/evaluate-alerts',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -131,6 +138,7 @@ export interface FileRoutesByFullPath {
   '/manage-sponsors': typeof AuthenticatedManageSponsorsRoute
   '/sponsor-engagement/$sponsorId': typeof SponsorEngagementSponsorIdRoute
   '/sponsor-fixture/$id': typeof SponsorFixtureIdRoute
+  '/api/public/hooks/evaluate-alerts': typeof ApiPublicHooksEvaluateAlertsRoute
   '/api/public/hooks/refresh-football-data': typeof ApiPublicHooksRefreshFootballDataRoute
 }
 export interface FileRoutesByTo {
@@ -149,6 +157,7 @@ export interface FileRoutesByTo {
   '/manage-sponsors': typeof AuthenticatedManageSponsorsRoute
   '/sponsor-engagement/$sponsorId': typeof SponsorEngagementSponsorIdRoute
   '/sponsor-fixture/$id': typeof SponsorFixtureIdRoute
+  '/api/public/hooks/evaluate-alerts': typeof ApiPublicHooksEvaluateAlertsRoute
   '/api/public/hooks/refresh-football-data': typeof ApiPublicHooksRefreshFootballDataRoute
 }
 export interface FileRoutesById {
@@ -169,6 +178,7 @@ export interface FileRoutesById {
   '/_authenticated/manage-sponsors': typeof AuthenticatedManageSponsorsRoute
   '/sponsor-engagement/$sponsorId': typeof SponsorEngagementSponsorIdRoute
   '/sponsor-fixture/$id': typeof SponsorFixtureIdRoute
+  '/api/public/hooks/evaluate-alerts': typeof ApiPublicHooksEvaluateAlertsRoute
   '/api/public/hooks/refresh-football-data': typeof ApiPublicHooksRefreshFootballDataRoute
 }
 export interface FileRouteTypes {
@@ -189,6 +199,7 @@ export interface FileRouteTypes {
     | '/manage-sponsors'
     | '/sponsor-engagement/$sponsorId'
     | '/sponsor-fixture/$id'
+    | '/api/public/hooks/evaluate-alerts'
     | '/api/public/hooks/refresh-football-data'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -207,6 +218,7 @@ export interface FileRouteTypes {
     | '/manage-sponsors'
     | '/sponsor-engagement/$sponsorId'
     | '/sponsor-fixture/$id'
+    | '/api/public/hooks/evaluate-alerts'
     | '/api/public/hooks/refresh-football-data'
   id:
     | '__root__'
@@ -226,6 +238,7 @@ export interface FileRouteTypes {
     | '/_authenticated/manage-sponsors'
     | '/sponsor-engagement/$sponsorId'
     | '/sponsor-fixture/$id'
+    | '/api/public/hooks/evaluate-alerts'
     | '/api/public/hooks/refresh-football-data'
   fileRoutesById: FileRoutesById
 }
@@ -243,6 +256,7 @@ export interface RootRouteChildren {
   TableRoute: typeof TableRoute
   SponsorEngagementSponsorIdRoute: typeof SponsorEngagementSponsorIdRoute
   SponsorFixtureIdRoute: typeof SponsorFixtureIdRoute
+  ApiPublicHooksEvaluateAlertsRoute: typeof ApiPublicHooksEvaluateAlertsRoute
   ApiPublicHooksRefreshFootballDataRoute: typeof ApiPublicHooksRefreshFootballDataRoute
 }
 
@@ -367,6 +381,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksRefreshFootballDataRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/evaluate-alerts': {
+      id: '/api/public/hooks/evaluate-alerts'
+      path: '/api/public/hooks/evaluate-alerts'
+      fullPath: '/api/public/hooks/evaluate-alerts'
+      preLoaderRoute: typeof ApiPublicHooksEvaluateAlertsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -399,6 +420,7 @@ const rootRouteChildren: RootRouteChildren = {
   TableRoute: TableRoute,
   SponsorEngagementSponsorIdRoute: SponsorEngagementSponsorIdRoute,
   SponsorFixtureIdRoute: SponsorFixtureIdRoute,
+  ApiPublicHooksEvaluateAlertsRoute: ApiPublicHooksEvaluateAlertsRoute,
   ApiPublicHooksRefreshFootballDataRoute:
     ApiPublicHooksRefreshFootballDataRoute,
 }
