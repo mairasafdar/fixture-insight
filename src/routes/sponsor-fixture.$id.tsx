@@ -73,8 +73,26 @@ function OnePager() {
   const sponsor = sponsors.find((s) => s.id === sponsorId) ?? null;
   const sponsorTeamIds = new Set(sponsor?.team_ids ?? []);
   const hospitality = sponsor ? scoreHospitality(e, sponsorTeamIds, sponsor, sponsors) : null;
+  const emv = estimateMediaValue(e, hospitality);
+  const fit = sponsor ? estimateAudienceFit(e, sponsor) : null;
+  const guests = planGuestList(seats, hospitality);
 
-  const summary = buildSummary(e, hospitality, sponsor?.brand_name ?? null);
+  const summary = buildSummary(e, hospitality, sponsor?.brand_name ?? null, emv, fit);
+
+  function exportGuestList() {
+    const rows = guests.map((g) => ({
+      fixture: `${e!.home?.name ?? "?"} vs ${e!.away?.name ?? "?"}`,
+      kickoff_uk: ukDate(e!.fixture.utc_date),
+      bucket: g.name,
+      seats: g.seats,
+      guidance: g.note,
+    }));
+    downloadCsv(
+      `guest-list-${e!.home?.short_name ?? "home"}-vs-${e!.away?.short_name ?? "away"}.csv`,
+      toCsvRows(rows),
+    );
+  }
+
 
   async function copy() {
     await navigator.clipboard.writeText(summary);
