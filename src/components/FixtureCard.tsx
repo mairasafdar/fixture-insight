@@ -129,3 +129,32 @@ export function FixtureCard({ e, rank, maxScore = 100 }: { e: Enriched; rank?: n
   );
 }
 
+function AngleItem({ angle, fixtureRef }: { angle: string; fixtureRef: string }) {
+  const hoverStart = useRef<number | null>(null);
+  const ref = `${fixtureRef}::${angle}`;
+  return (
+    <li
+      onMouseEnter={() => { hoverStart.current = Date.now(); }}
+      onMouseLeave={() => {
+        if (hoverStart.current) {
+          logDwell("fixture-angle-dwell", ref, Date.now() - hoverStart.current);
+          hoverStart.current = null;
+        }
+      }}
+    >
+      <button
+        type="button"
+        onClick={(ev) => {
+          ev.stopPropagation();
+          logLinkClick("fixture-angle", ref);
+        }}
+        className="flex w-full gap-2 text-left transition hover:text-foreground"
+      >
+        <span className="mt-1.5 size-1 shrink-0 rounded-full bg-grass" />
+        <span>{angle}</span>
+      </button>
+    </li>
+  );
+}
+
+
