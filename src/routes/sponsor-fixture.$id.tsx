@@ -315,7 +315,11 @@ function buildSummary(
       );
     }
   }
+  lines.push("");
+  lines.push(`Estimated Media Value: ${formatGbp(emv.gbp)} (${emv.slotLabel}, ~${emv.reachMillions}M viewers)`);
+  if (fit) lines.push(`Audience Fit: ${(fit.score / 10).toFixed(1)}/10 · ${fit.profileLabel}`);
   if (e.score.angles.length) {
+
     lines.push("");
     lines.push("Content angles:");
     for (const a of e.score.angles) lines.push(`  - ${a}`);
