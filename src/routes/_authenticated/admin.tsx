@@ -578,8 +578,11 @@ function LinkAnalyticsSection() {
           total_clicks: f.total,
           avg_card_dwell_ms: f.avgCardDwellMs,
           avg_angle_dwell_ms: f.avgAngleDwellMs,
+          content_score_10: f.contentScore10,
+          engagement_weighted_score: f.engagementWeighted,
         })),
-        ["rank", "fixture_id", "matchup", "card_clicks", "angle_clicks", "total_clicks", "avg_card_dwell_ms", "avg_angle_dwell_ms"],
+        ["rank", "fixture_id", "matchup", "card_clicks", "angle_clicks", "total_clicks", "avg_card_dwell_ms", "avg_angle_dwell_ms", "content_score_10", "engagement_weighted_score"],
+
       ),
     );
   }
