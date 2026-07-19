@@ -126,12 +126,14 @@ values ('${userId ?? "<your-user-id>"}', 'admin');`}
             replace them with verified real sponsors from each club's official partners page.
           </p>
         </div>
-        <Link
-          to="/_authenticated/admin"
-          className="rounded-md border border-border px-3 py-1.5 text-xs hover:bg-surface-2"
-        >
-          Marquee players →
-        </Link>
+        <div className="flex gap-2">
+          <Link to="/_authenticated/agencies" className="rounded-md border border-border px-3 py-1.5 text-xs hover:bg-surface-2">
+            Agencies →
+          </Link>
+          <Link to="/_authenticated/admin" className="rounded-md border border-border px-3 py-1.5 text-xs hover:bg-surface-2">
+            Marquee players →
+          </Link>
+        </div>
       </header>
 
       <form onSubmit={submit} className="card-glass mb-8 grid gap-3 p-4 sm:grid-cols-2">
@@ -196,18 +198,31 @@ values ('${userId ?? "<your-user-id>"}', 'admin');`}
                   Rival brands: {s.rival_brands.join(", ") || "—"} · Rival categories: {s.rival_categories.join(", ") || "—"}
                 </div>
               </div>
-              <div className="flex shrink-0 gap-2">
-                {s.is_example && (
-                  <button
-                    onClick={() => updateSponsor(s.id, { is_example: false, brand_name: s.brand_name.replace(/^EXAMPLE — /, "") })}
-                    className="rounded border border-border px-2 py-1 text-[11px] hover:bg-surface-2"
-                  >
-                    Mark real
+              <div className="flex shrink-0 flex-col items-end gap-2">
+                <select
+                  value={s.agency_id ?? ""}
+                  onChange={(e) => updateSponsor(s.id, { agency_id: e.target.value || null } as any)}
+                  className="rounded border border-border bg-surface px-2 py-1 text-[11px]"
+                  title="Assign agency for white-label briefings"
+                >
+                  <option value="">No agency</option>
+                  {agencies.map((a) => (
+                    <option key={a.id} value={a.id}>{a.name}</option>
+                  ))}
+                </select>
+                <div className="flex gap-2">
+                  {s.is_example && (
+                    <button
+                      onClick={() => updateSponsor(s.id, { is_example: false, brand_name: s.brand_name.replace(/^EXAMPLE — /, "") })}
+                      className="rounded border border-border px-2 py-1 text-[11px] hover:bg-surface-2"
+                    >
+                      Mark real
+                    </button>
+                  )}
+                  <button onClick={() => remove(s.id)} className="rounded border border-destructive/40 px-2 py-1 text-[11px] text-destructive hover:bg-destructive/10">
+                    Delete
                   </button>
-                )}
-                <button onClick={() => remove(s.id)} className="rounded border border-destructive/40 px-2 py-1 text-[11px] text-destructive hover:bg-destructive/10">
-                  Delete
-                </button>
+                </div>
               </div>
             </div>
           </li>
