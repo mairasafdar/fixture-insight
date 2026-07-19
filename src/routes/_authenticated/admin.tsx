@@ -2,8 +2,10 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { fetchMarqueePlayers, fetchTeams } from "@/lib/queries";
+import { fetchMarqueePlayers, fetchTeams, fetchAllData } from "@/lib/queries";
 import type { MarqueePlayer, TeamLite } from "@/lib/content-score";
+import { enrichFixtures, maxAttainable } from "@/lib/content-score";
+
 import { toCsv, downloadCsv } from "@/lib/csv";
 
 import {
