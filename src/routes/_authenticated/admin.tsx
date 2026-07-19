@@ -295,8 +295,8 @@ function angleTemplate(angle: string): string {
 }
 
 function parseContext(ctx: string | null): { referrer: string; page: string; utm: Record<string, string> } {
-  const empty = { referrer: "", page: "", utm: {} as Record<string, string> };
-  if (!ctx) return empty;
+  if (!ctx) return { referrer: "", page: "", utm: {} };
+
   const refMatch = ctx.match(/ref=([^|]*)/);
   const pageMatch = ctx.match(/page=(.+)$/);
   const referrer = (refMatch?.[1] ?? "").trim();
