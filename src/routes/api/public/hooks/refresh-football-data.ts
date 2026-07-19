@@ -161,13 +161,42 @@ export const Route = createFileRoute("/api/public/hooks/refresh-football-data")(
   server: {
     handlers: {
       OPTIONS: async () => new Response(null, { status: 204, headers: corsHeaders }),
-      GET: async () => handle(),
-      POST: async () => handle(),
+      GET: async ({ request }) => handle(request),
+      POST: async ({ request }) => handle(request),
     },
   },
 });
 
-async function handle() {
+function timingSafeEqualStr(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let out = 0;
+  for (let i = 0; i < a.length; i++) out |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return out === 0;
+}
+
+async function handle(request: Request) {
+  const expected = process.env.REFRESH_HOOK_SECRET;
+  if (!expected) {
+    return new Response(JSON.stringify({ ok: false, error: "server misconfigured" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json", ...corsHeaders },
+    });
+  }
+  const provided =
+    request.headers.get("x-refresh-secret") ||
+    (request.headers.get("authorization") || "").replace(/^Bearer\s+/i, "") ||
+    new URL(request.url).searchParams.get("secret") ||
+    "";
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+  const authorized =
+    (!!provided && timingSafeEqualStr(provided, expected)) ||
+    (!!provided && !!serviceKey && timingSafeEqualStr(provided, serviceKey));
+  if (!authorized) {
+    return new Response(JSON.stringify({ ok: false, error: "unauthorized" }), {
+      status: 401,
+      headers: { "Content-Type": "application/json", ...corsHeaders },
+    });
+  }
   try {
     const result = await runRefresh();
     return new Response(JSON.stringify({ ok: true, ...result }), {

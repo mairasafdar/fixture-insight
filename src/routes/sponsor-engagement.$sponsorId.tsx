@@ -1,11 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo } from "react";
-import { supabase } from "@/integrations/supabase/client";
+
 import { fetchSponsorProfiles } from "@/lib/queries";
 import { PageState } from "@/components/PageState";
 import { toCsv, downloadCsv } from "@/lib/csv";
 import { logLinkClick } from "@/lib/analytics";
+import { getSponsorEngagement } from "@/lib/sponsor-engagement.functions";
 
 type EngagementRow = {
   fixture_id: number;
@@ -49,11 +50,7 @@ export const Route = createFileRoute("/sponsor-engagement/$sponsorId")({
 });
 
 async function fetchEngagement(sponsorId: string): Promise<EngagementRow[]> {
-  const { data, error } = await (supabase as any).rpc("get_sponsor_engagement", {
-    _sponsor_id: sponsorId,
-  });
-  if (error) throw error;
-  return (data ?? []) as EngagementRow[];
+  return await getSponsorEngagement({ data: { sponsorId } });
 }
 
 function fmtMs(ms: number): string {

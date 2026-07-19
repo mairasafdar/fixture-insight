@@ -107,6 +107,21 @@ export type Database = {
           },
         ]
       }
+      last_refresh: {
+        Row: {
+          id: boolean
+          ran_at: string
+        }
+        Insert: {
+          id?: boolean
+          ran_at?: string
+        }
+        Update: {
+          id?: boolean
+          ran_at?: string
+        }
+        Relationships: []
+      }
       link_clicks: {
         Row: {
           created_at: string
@@ -388,7 +403,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      get_last_refresh: { Args: never; Returns: string }
       get_sponsor_engagement: {
         Args: { _sponsor_id: string }
         Returns: {

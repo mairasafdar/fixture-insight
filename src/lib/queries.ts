@@ -51,9 +51,12 @@ export async function fetchMarqueePlayers(): Promise<MarqueePlayer[]> {
 }
 
 export async function fetchLastUpdated(): Promise<string | null> {
-  const { data, error } = await (supabase as any).rpc("get_last_refresh");
+  const { data, error } = await (supabase as any)
+    .from("last_refresh")
+    .select("ran_at")
+    .maybeSingle();
   if (error) return null;
-  return (data as string | null) ?? null;
+  return (data?.ran_at as string | null) ?? null;
 }
 
 export async function fetchAllData() {
