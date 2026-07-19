@@ -180,7 +180,7 @@ function Landing() {
                   Live example
                 </div>
                 <div className="font-display text-lg font-bold">
-                  {example?.name ?? "Sample sponsor"} — top hospitality fixtures
+                  {example?.brand_name ?? "Sample sponsor"} — top hospitality fixtures
                 </div>
               </div>
               {example && (
