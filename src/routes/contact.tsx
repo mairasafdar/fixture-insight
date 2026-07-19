@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { logLinkClick } from "@/lib/analytics";
 
 export const Route = createFileRoute("/contact")({
   component: Contact,
@@ -36,6 +37,7 @@ function Contact() {
           href="https://www.linkedin.com/in/maira-s-9a006b227"
           target="_blank"
           rel="noreferrer"
+          onClick={() => logLinkClick("linkedin", "https://www.linkedin.com/in/maira-s-9a006b227")}
           className="mt-1 inline-block font-display text-xl font-bold text-accent hover:underline"
         >
           linkedin.com/in/maira-s-9a006b227
