@@ -119,20 +119,9 @@ export function FixtureCard({ e, rank, maxScore = 100 }: { e: Enriched; rank?: n
           </div>
           <ul className="space-y-1.5 text-sm text-muted-foreground">
             {score.angles.map((a, i) => (
-              <li key={i}>
-                <button
-                  type="button"
-                  onClick={(ev) => {
-                    ev.stopPropagation();
-                    logLinkClick("fixture-angle", `${fixtureRef}::${a}`);
-                  }}
-                  className="flex w-full gap-2 text-left transition hover:text-foreground"
-                >
-                  <span className="mt-1.5 size-1 shrink-0 rounded-full bg-grass" />
-                  <span>{a}</span>
-                </button>
-              </li>
+              <AngleItem key={i} angle={a} fixtureRef={fixtureRef} />
             ))}
+
           </ul>
         </div>
       )}
