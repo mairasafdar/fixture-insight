@@ -71,6 +71,33 @@ export type Database = {
           },
         ]
       }
+      link_clicks: {
+        Row: {
+          created_at: string
+          href: string | null
+          id: string
+          link_key: string
+          referrer: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          created_at?: string
+          href?: string | null
+          id?: string
+          link_key: string
+          referrer?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          created_at?: string
+          href?: string | null
+          id?: string
+          link_key?: string
+          referrer?: string | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       marquee_players: {
         Row: {
           created_at: string
