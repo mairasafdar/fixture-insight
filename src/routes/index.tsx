@@ -4,6 +4,8 @@ import { fetchAllData } from "@/lib/queries";
 import { enrichFixtures, maxAttainable } from "@/lib/content-score";
 import { FixtureCard } from "@/components/FixtureCard";
 import { PageState } from "@/components/PageState";
+import { toCsv, downloadCsv } from "@/lib/csv";
+
 
 export const Route = createFileRoute("/")({
   component: ThisWeek,
