@@ -275,6 +275,17 @@ function parseFixtureRef(href: string | null): { fixtureId: string; matchup: str
   return { fixtureId: m[1], matchup: m[2], angle: m[3] };
 }
 
+function parseDwellMs(href: string | null): number | null {
+  if (!href) return null;
+  const m = href.match(/::dwell_ms:(\d+)$/);
+  return m ? Number(m[1]) : null;
+}
+
+function stripDwell(href: string | null): string | null {
+  if (!href) return null;
+  return href.replace(/::dwell_ms:\d+$/, "");
+}
+
 function angleTemplate(angle: string): string {
   // Collapse specific team/player names into a template shape (strip numbers, TitleCase clusters).
   return angle
@@ -282,6 +293,35 @@ function angleTemplate(angle: string): string {
     .replace(/\s+/g, " ")
     .trim();
 }
+
+function parseContext(ctx: string | null): { referrer: string; page: string; utm: Record<string, string> } {
+  const empty = { referrer: "", page: "", utm: {} as Record<string, string> };
+  if (!ctx) return empty;
+  const refMatch = ctx.match(/ref=([^|]*)/);
+  const pageMatch = ctx.match(/page=(.+)$/);
+  const referrer = (refMatch?.[1] ?? "").trim();
+  const page = (pageMatch?.[1] ?? "").trim();
+  const utm: Record<string, string> = {};
+  const qIdx = page.indexOf("?");
+  if (qIdx >= 0) {
+    const sp = new URLSearchParams(page.slice(qIdx));
+    for (const k of ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content"]) {
+      const v = sp.get(k);
+      if (v) utm[k] = v;
+    }
+  }
+  return { referrer, page, utm };
+}
+
+function referrerHost(referrer: string): string {
+  if (!referrer) return "(direct)";
+  try {
+    return new URL(referrer).hostname.replace(/^www\./, "");
+  } catch {
+    return referrer.slice(0, 40);
+  }
+}
+
 
 function LinkAnalyticsSection() {
   const today = new Date();
