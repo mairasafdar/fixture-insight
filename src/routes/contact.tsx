@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { logLinkClick } from "@/lib/analytics";
 
 export const Route = createFileRoute("/contact")({
   component: Contact,
