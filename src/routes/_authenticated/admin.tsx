@@ -215,6 +215,91 @@ values ('${userId ?? "<your-user-id>"}', 'admin');`}
             </section>
           ))}
       </div>
+
+      <LinkAnalyticsSection />
     </div>
+  );
+}
+
+function LinkAnalyticsSection() {
+  const { data: clicks = [] } = useQuery({
+    queryKey: ["link-clicks"],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from("link_clicks")
+        .select("id, link_key, href, referrer, created_at")
+        .order("created_at", { ascending: false })
+        .limit(200);
+      if (error) throw error;
+      return (data ?? []) as Array<{
+        id: string;
+        link_key: string;
+        href: string | null;
+        referrer: string | null;
+        created_at: string;
+      }>;
+    },
+  });
+
+  const totals = new Map<string, number>();
+  const last7 = new Map<string, number>();
+  const cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
+  for (const c of clicks) {
+    totals.set(c.link_key, (totals.get(c.link_key) ?? 0) + 1);
+    if (new Date(c.created_at).getTime() >= cutoff) {
+      last7.set(c.link_key, (last7.get(c.link_key) ?? 0) + 1);
+    }
+  }
+  const keys = Array.from(new Set([...totals.keys(), "linkedin", "contact"]));
+
+  return (
+    <section className="mt-12">
+      <h2 className="font-display text-2xl font-bold tracking-tight">Link engagement</h2>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Clicks on LinkedIn and Contact links across the site. Last 200 events shown.
+      </p>
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-3">
+        {keys.map((k) => (
+          <div key={k} className="card-glass p-4">
+            <div className="text-[11px] uppercase tracking-wider text-muted-foreground">{k}</div>
+            <div className="mt-1 font-display text-3xl font-bold">{totals.get(k) ?? 0}</div>
+            <div className="mt-1 text-xs text-muted-foreground">
+              {last7.get(k) ?? 0} in the last 7 days
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-6 overflow-hidden rounded-md border border-border">
+        <table className="w-full text-left text-xs">
+          <thead className="bg-surface-2 text-[11px] uppercase tracking-wider text-muted-foreground">
+            <tr>
+              <th className="px-3 py-2">When</th>
+              <th className="px-3 py-2">Link</th>
+              <th className="px-3 py-2">Referrer</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border/60">
+            {clicks.slice(0, 50).map((c) => (
+              <tr key={c.id}>
+                <td className="px-3 py-2 whitespace-nowrap">
+                  {new Date(c.created_at).toLocaleString("en-GB")}
+                </td>
+                <td className="px-3 py-2 font-medium">{c.link_key}</td>
+                <td className="px-3 py-2 truncate text-muted-foreground">{c.referrer ?? "—"}</td>
+              </tr>
+            ))}
+            {clicks.length === 0 && (
+              <tr>
+                <td colSpan={3} className="px-3 py-6 text-center text-muted-foreground">
+                  No clicks tracked yet.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </section>
   );
 }
