@@ -11,7 +11,7 @@ export const Route = createFileRoute("/radar")({
       { title: "Season Radar — Fixture Radar" },
       {
         name: "description",
-        content: "The 20 highest-scoring Premier League fixtures of the season, grouped by month.",
+        content: "The 40 highest-scoring Premier League fixtures of the season, grouped by month.",
       },
     ],
   }),
