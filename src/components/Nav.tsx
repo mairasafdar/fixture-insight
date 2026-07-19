@@ -1,5 +1,7 @@
 import type { CSSProperties } from "react";
 import { Link } from "@tanstack/react-router";
+import { openIntroModal } from "@/components/IntroModal";
+
 
 const items = [
   { to: "/", label: "This Week" },
