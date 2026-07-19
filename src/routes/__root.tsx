@@ -13,7 +13,9 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
+import { IntroModal } from "@/components/IntroModal";
 import { fetchLastUpdated } from "@/lib/queries";
+
 
 function NotFoundComponent() {
   return (
@@ -166,9 +168,11 @@ function AppShell() {
         <Outlet />
       </main>
       <Footer />
+      <IntroModal />
     </div>
   );
 }
+
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();

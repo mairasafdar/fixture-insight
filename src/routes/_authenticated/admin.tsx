@@ -234,8 +234,17 @@ values ('${userId ?? "<your-user-id>"}', 'admin');`}
   );
 }
 
-const ALL_KEYS = ["linkedin", "contact", "football-data", "fixture-card", "fixture-angle"] as const;
+const ALL_KEYS = [
+  "linkedin",
+  "contact",
+  "football-data",
+  "fixture-card",
+  "fixture-angle",
+  "fixture-card-dwell",
+  "fixture-angle-dwell",
+] as const;
 type LK = (typeof ALL_KEYS)[number];
+
 
 function toYMD(d: Date): string {
   return d.toISOString().slice(0, 10);
@@ -266,6 +275,17 @@ function parseFixtureRef(href: string | null): { fixtureId: string; matchup: str
   return { fixtureId: m[1], matchup: m[2], angle: m[3] };
 }
 
+function parseDwellMs(href: string | null): number | null {
+  if (!href) return null;
+  const m = href.match(/::dwell_ms:(\d+)$/);
+  return m ? Number(m[1]) : null;
+}
+
+function stripDwell(href: string | null): string | null {
+  if (!href) return null;
+  return href.replace(/::dwell_ms:\d+$/, "");
+}
+
 function angleTemplate(angle: string): string {
   // Collapse specific team/player names into a template shape (strip numbers, TitleCase clusters).
   return angle
@@ -273,6 +293,35 @@ function angleTemplate(angle: string): string {
     .replace(/\s+/g, " ")
     .trim();
 }
+
+function parseContext(ctx: string | null): { referrer: string; page: string; utm: Record<string, string> } {
+  if (!ctx) return { referrer: "", page: "", utm: {} };
+
+  const refMatch = ctx.match(/ref=([^|]*)/);
+  const pageMatch = ctx.match(/page=(.+)$/);
+  const referrer = (refMatch?.[1] ?? "").trim();
+  const page = (pageMatch?.[1] ?? "").trim();
+  const utm: Record<string, string> = {};
+  const qIdx = page.indexOf("?");
+  if (qIdx >= 0) {
+    const sp = new URLSearchParams(page.slice(qIdx));
+    for (const k of ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content"]) {
+      const v = sp.get(k);
+      if (v) utm[k] = v;
+    }
+  }
+  return { referrer, page, utm };
+}
+
+function referrerHost(referrer: string): string {
+  if (!referrer) return "(direct)";
+  try {
+    return new URL(referrer).hostname.replace(/^www\./, "");
+  } catch {
+    return referrer.slice(0, 40);
+  }
+}
+
 
 function LinkAnalyticsSection() {
   const today = new Date();
@@ -338,33 +387,110 @@ function LinkAnalyticsSection() {
     (a.date as string).localeCompare(b.date as string),
   );
 
-  // Drill-downs: top fixtures & top angle templates
-  const fixtureCounts = new Map<string, { matchup: string; cardClicks: number; angleClicks: number }>();
-  const angleCounts = new Map<string, number>();
+  // Drill-downs: top fixtures & top angle templates (with dwell aggregation)
+  type FixEntry = {
+    matchup: string;
+    cardClicks: number;
+    angleClicks: number;
+    cardDwellMsTotal: number;
+    cardDwellSamples: number;
+    angleDwellMsTotal: number;
+    angleDwellSamples: number;
+  };
+  const emptyFix = (matchup: string): FixEntry => ({
+    matchup,
+    cardClicks: 0,
+    angleClicks: 0,
+    cardDwellMsTotal: 0,
+    cardDwellSamples: 0,
+    angleDwellMsTotal: 0,
+    angleDwellSamples: 0,
+  });
+  const fixtureCounts = new Map<string, FixEntry>();
+  type AngleEntry = { clicks: number; dwellMsTotal: number; dwellSamples: number };
+  const angleCounts = new Map<string, AngleEntry>();
+  // Referrer + UTM breakdowns
+  const referrerCounts = new Map<string, number>();
+  const utmSourceCounts = new Map<string, number>();
+
   for (const c of filtered) {
-    if (c.link_key !== "fixture-card" && c.link_key !== "fixture-angle") continue;
-    const parsed = parseFixtureRef(c.href);
+    const ctx = parseContext(c.referrer);
+    referrerCounts.set(referrerHost(ctx.referrer), (referrerCounts.get(referrerHost(ctx.referrer)) ?? 0) + 1);
+    const src = ctx.utm.utm_source ?? "(none)";
+    utmSourceCounts.set(src, (utmSourceCounts.get(src) ?? 0) + 1);
+
+    const isFixtureEvent =
+      c.link_key === "fixture-card" ||
+      c.link_key === "fixture-angle" ||
+      c.link_key === "fixture-card-dwell" ||
+      c.link_key === "fixture-angle-dwell";
+    if (!isFixtureEvent) continue;
+
+    const parsed = parseFixtureRef(stripDwell(c.href));
     if (!parsed) continue;
-    const entry = fixtureCounts.get(parsed.fixtureId) ?? {
-      matchup: parsed.matchup,
-      cardClicks: 0,
-      angleClicks: 0,
-    };
+    const entry = fixtureCounts.get(parsed.fixtureId) ?? emptyFix(parsed.matchup);
+    const dwell = parseDwellMs(c.href);
+
     if (c.link_key === "fixture-card") entry.cardClicks += 1;
-    else entry.angleClicks += 1;
+    else if (c.link_key === "fixture-angle") entry.angleClicks += 1;
+    else if (c.link_key === "fixture-card-dwell" && dwell != null) {
+      entry.cardDwellMsTotal += dwell;
+      entry.cardDwellSamples += 1;
+    } else if (c.link_key === "fixture-angle-dwell" && dwell != null) {
+      entry.angleDwellMsTotal += dwell;
+      entry.angleDwellSamples += 1;
+    }
     fixtureCounts.set(parsed.fixtureId, entry);
-    if (c.link_key === "fixture-angle" && parsed.angle) {
+
+    if ((c.link_key === "fixture-angle" || c.link_key === "fixture-angle-dwell") && parsed.angle) {
       const tpl = angleTemplate(parsed.angle);
-      angleCounts.set(tpl, (angleCounts.get(tpl) ?? 0) + 1);
+      const ae = angleCounts.get(tpl) ?? { clicks: 0, dwellMsTotal: 0, dwellSamples: 0 };
+      if (c.link_key === "fixture-angle") ae.clicks += 1;
+      else if (dwell != null) {
+        ae.dwellMsTotal += dwell;
+        ae.dwellSamples += 1;
+      }
+      angleCounts.set(tpl, ae);
     }
   }
+
   const topFixtures = Array.from(fixtureCounts.entries())
-    .map(([id, v]) => ({ id, ...v, total: v.cardClicks + v.angleClicks }))
-    .sort((a, b) => b.total - a.total)
+    .map(([id, v]) => ({
+      id,
+      ...v,
+      total: v.cardClicks + v.angleClicks,
+      avgCardDwellMs: v.cardDwellSamples ? Math.round(v.cardDwellMsTotal / v.cardDwellSamples) : 0,
+      avgAngleDwellMs: v.angleDwellSamples ? Math.round(v.angleDwellMsTotal / v.angleDwellSamples) : 0,
+    }))
+    .sort((a, b) => b.total - a.total || b.avgCardDwellMs - a.avgCardDwellMs)
     .slice(0, 10);
   const topAngles = Array.from(angleCounts.entries())
+    .map(([tpl, v]) => ({
+      tpl,
+      clicks: v.clicks,
+      avgDwellMs: v.dwellSamples ? Math.round(v.dwellMsTotal / v.dwellSamples) : 0,
+    }))
+    .sort((a, b) => b.clicks - a.clicks || b.avgDwellMs - a.avgDwellMs)
+    .slice(0, 10);
+
+  const topReferrers = Array.from(referrerCounts.entries())
     .sort((a, b) => b[1] - a[1])
     .slice(0, 10);
+  const topUtmSources = Array.from(utmSourceCounts.entries())
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 10);
+
+  // Aggregate dwell for the summary strip.
+  const dwellSummary = { card: { total: 0, n: 0 }, angle: { total: 0, n: 0 } };
+  for (const c of filtered) {
+    const ms = parseDwellMs(c.href);
+    if (ms == null) continue;
+    if (c.link_key === "fixture-card-dwell") { dwellSummary.card.total += ms; dwellSummary.card.n += 1; }
+    else if (c.link_key === "fixture-angle-dwell") { dwellSummary.angle.total += ms; dwellSummary.angle.n += 1; }
+  }
+  const avgCardDwellS = dwellSummary.card.n ? (dwellSummary.card.total / dwellSummary.card.n / 1000).toFixed(1) : "—";
+  const avgAngleDwellS = dwellSummary.angle.n ? (dwellSummary.angle.total / dwellSummary.angle.n / 1000).toFixed(1) : "—";
+
 
   const colors: Record<LK, string> = {
     linkedin: "#0A66C2",
@@ -372,7 +498,10 @@ function LinkAnalyticsSection() {
     "football-data": "#f59e0b",
     "fixture-card": "#a855f7",
     "fixture-angle": "#ec4899",
+    "fixture-card-dwell": "#6366f1",
+    "fixture-angle-dwell": "#14b8a6",
   };
+
 
   function toggle(k: LK) {
     setSelected((prev) => {
@@ -384,18 +513,66 @@ function LinkAnalyticsSection() {
   }
 
   function exportCsv() {
-    const rows = filtered.map((c) => ({
-      timestamp_iso: c.created_at,
-      link_key: c.link_key,
-      detail: c.href ?? "",
-      referrer: c.referrer ?? "",
-      user_agent: c.user_agent ?? "",
-    }));
+    const rows = filtered.map((c) => {
+      const ctx = parseContext(c.referrer);
+      return {
+        timestamp_iso: c.created_at,
+        link_key: c.link_key,
+        detail: stripDwell(c.href) ?? "",
+        dwell_ms: parseDwellMs(c.href) ?? "",
+        referrer: ctx.referrer,
+        referrer_host: referrerHost(ctx.referrer),
+        page: ctx.page,
+        utm_source: ctx.utm.utm_source ?? "",
+        utm_medium: ctx.utm.utm_medium ?? "",
+        utm_campaign: ctx.utm.utm_campaign ?? "",
+        user_agent: c.user_agent ?? "",
+      };
+    });
     downloadCsv(
       `link-engagement_${start}_to_${end}.csv`,
-      toCsv(rows, ["timestamp_iso", "link_key", "detail", "referrer", "user_agent"]),
+      toCsv(rows, [
+        "timestamp_iso", "link_key", "detail", "dwell_ms",
+        "referrer", "referrer_host", "page",
+        "utm_source", "utm_medium", "utm_campaign", "user_agent",
+      ]),
     );
   }
+
+  function exportTopFixturesCsv() {
+    downloadCsv(
+      `top-fixtures_${start}_to_${end}.csv`,
+      toCsv(
+        topFixtures.map((f, i) => ({
+          rank: i + 1,
+          fixture_id: f.id,
+          matchup: f.matchup,
+          card_clicks: f.cardClicks,
+          angle_clicks: f.angleClicks,
+          total_clicks: f.total,
+          avg_card_dwell_ms: f.avgCardDwellMs,
+          avg_angle_dwell_ms: f.avgAngleDwellMs,
+        })),
+        ["rank", "fixture_id", "matchup", "card_clicks", "angle_clicks", "total_clicks", "avg_card_dwell_ms", "avg_angle_dwell_ms"],
+      ),
+    );
+  }
+
+  function exportTopAnglesCsv() {
+    downloadCsv(
+      `top-angles_${start}_to_${end}.csv`,
+      toCsv(
+        topAngles.map((a, i) => ({
+          rank: i + 1,
+          angle_template: a.tpl,
+          clicks: a.clicks,
+          avg_dwell_ms: a.avgDwellMs,
+        })),
+        ["rank", "angle_template", "clicks", "avg_dwell_ms"],
+      ),
+    );
+  }
+
 
   return (
     <section className="mt-12">
@@ -526,13 +703,33 @@ function LinkAnalyticsSection() {
         </div>
       </div>
 
+      <div className="mt-6 grid gap-3 sm:grid-cols-2">
+        <div className="card-glass p-4">
+          <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Avg fixture-card dwell</div>
+          <div className="mt-1 font-display text-3xl font-bold">{avgCardDwellS}s</div>
+          <div className="mt-1 text-xs text-muted-foreground">{dwellSummary.card.n} samples</div>
+        </div>
+        <div className="card-glass p-4">
+          <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Avg content-angle dwell</div>
+          <div className="mt-1 font-display text-3xl font-bold">{avgAngleDwellS}s</div>
+          <div className="mt-1 text-xs text-muted-foreground">{dwellSummary.angle.n} samples</div>
+        </div>
+      </div>
+
       <div className="mt-6 grid gap-4 md:grid-cols-2">
         <div className="card-glass p-4">
-          <div className="mb-2 flex items-center justify-between">
+          <div className="mb-2 flex items-center justify-between gap-2">
             <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
               Top clicked fixtures
             </div>
-            <div className="text-[10px] text-muted-foreground">card + angle clicks</div>
+            <button
+              type="button"
+              onClick={exportTopFixturesCsv}
+              disabled={topFixtures.length === 0}
+              className="rounded border border-border px-2 py-0.5 text-[10px] font-semibold hover:bg-surface-2 disabled:opacity-50"
+            >
+              ⬇ CSV
+            </button>
           </div>
           {topFixtures.length === 0 ? (
             <div className="py-4 text-xs text-muted-foreground">No fixture clicks yet.</div>
@@ -541,7 +738,14 @@ function LinkAnalyticsSection() {
               {topFixtures.map((f, i) => (
                 <li key={f.id} className="flex items-center gap-3 py-2">
                   <span className="w-6 font-mono text-xs text-muted-foreground">#{i + 1}</span>
-                  <span className="flex-1 truncate">{f.matchup}</span>
+                  <div className="flex-1 truncate">
+                    <div className="truncate">{f.matchup}</div>
+                    {(f.avgCardDwellMs > 0 || f.avgAngleDwellMs > 0) && (
+                      <div className="text-[10px] text-muted-foreground">
+                        avg dwell {(f.avgCardDwellMs / 1000).toFixed(1)}s card · {(f.avgAngleDwellMs / 1000).toFixed(1)}s angle
+                      </div>
+                    )}
+                  </div>
                   <span className="font-mono text-xs text-muted-foreground">
                     {f.cardClicks}c · {f.angleClicks}a
                   </span>
@@ -552,19 +756,71 @@ function LinkAnalyticsSection() {
           )}
         </div>
         <div className="card-glass p-4">
-          <div className="mb-2 text-[11px] uppercase tracking-wider text-muted-foreground">
-            Top angle templates
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
+              Top angle templates
+            </div>
+            <button
+              type="button"
+              onClick={exportTopAnglesCsv}
+              disabled={topAngles.length === 0}
+              className="rounded border border-border px-2 py-0.5 text-[10px] font-semibold hover:bg-surface-2 disabled:opacity-50"
+            >
+              ⬇ CSV
+            </button>
           </div>
           {topAngles.length === 0 ? (
             <div className="py-4 text-xs text-muted-foreground">No angle clicks yet.</div>
           ) : (
             <ul className="divide-y divide-border/60 text-sm">
-              {topAngles.map(([tpl, count], i) => (
+              {topAngles.map((a, i) => (
                 <li key={i} className="flex items-start gap-3 py-2">
-                  <span className="w-6 pt-0.5 font-mono text-xs text-muted-foreground">
-                    #{i + 1}
-                  </span>
-                  <span className="flex-1 text-xs leading-snug text-muted-foreground">{tpl}</span>
+                  <span className="w-6 pt-0.5 font-mono text-xs text-muted-foreground">#{i + 1}</span>
+                  <div className="flex-1 text-xs leading-snug text-muted-foreground">
+                    <div>{a.tpl}</div>
+                    {a.avgDwellMs > 0 && (
+                      <div className="text-[10px]">avg dwell {(a.avgDwellMs / 1000).toFixed(1)}s</div>
+                    )}
+                  </div>
+                  <span className="w-8 text-right font-display font-semibold">{a.clicks}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
+
+      <div className="mt-6 grid gap-4 md:grid-cols-2">
+        <div className="card-glass p-4">
+          <div className="mb-2 text-[11px] uppercase tracking-wider text-muted-foreground">
+            Top referrers
+          </div>
+          {topReferrers.length === 0 ? (
+            <div className="py-4 text-xs text-muted-foreground">No referrer data.</div>
+          ) : (
+            <ul className="divide-y divide-border/60 text-sm">
+              {topReferrers.map(([host, count], i) => (
+                <li key={i} className="flex items-center gap-3 py-2">
+                  <span className="w-6 font-mono text-xs text-muted-foreground">#{i + 1}</span>
+                  <span className="flex-1 truncate">{host}</span>
+                  <span className="w-8 text-right font-display font-semibold">{count}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+        <div className="card-glass p-4">
+          <div className="mb-2 text-[11px] uppercase tracking-wider text-muted-foreground">
+            UTM sources
+          </div>
+          {topUtmSources.length === 0 ? (
+            <div className="py-4 text-xs text-muted-foreground">No UTM data.</div>
+          ) : (
+            <ul className="divide-y divide-border/60 text-sm">
+              {topUtmSources.map(([src, count], i) => (
+                <li key={i} className="flex items-center gap-3 py-2">
+                  <span className="w-6 font-mono text-xs text-muted-foreground">#{i + 1}</span>
+                  <span className="flex-1 truncate">{src}</span>
                   <span className="w-8 text-right font-display font-semibold">{count}</span>
                 </li>
               ))}
@@ -572,6 +828,7 @@ function LinkAnalyticsSection() {
           )}
         </div>
       </div>
+
 
       <div className="mt-6 overflow-hidden rounded-md border border-border">
         <table className="w-full text-left text-xs">

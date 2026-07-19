@@ -1,5 +1,7 @@
+import { useRef } from "react";
 import type { Enriched } from "@/lib/content-score";
-import { logLinkClick } from "@/lib/analytics";
+import { logLinkClick, logDwell } from "@/lib/analytics";
+
 
 
 
@@ -65,11 +67,20 @@ export function FixtureCard({ e, rank, maxScore = 100 }: { e: Enriched; rank?: n
   const { fixture, home, away, score } = e;
   const matchup = `${home?.name ?? "?"} vs ${away?.name ?? "?"}`;
   const fixtureRef = `fixture:${fixture.id}:${matchup}`;
+  const cardHoverStart = useRef<number | null>(null);
   return (
     <article
       className="card-glass group relative cursor-pointer overflow-hidden p-5 transition hover:border-grass/40 hover:shadow-glow"
       onClick={() => logLinkClick("fixture-card", fixtureRef)}
+      onMouseEnter={() => { cardHoverStart.current = Date.now(); }}
+      onMouseLeave={() => {
+        if (cardHoverStart.current) {
+          logDwell("fixture-card-dwell", fixtureRef, Date.now() - cardHoverStart.current);
+          cardHoverStart.current = null;
+        }
+      }}
     >
+
       {rank !== undefined && (
         <div className="absolute right-4 top-4 font-mono text-xs text-muted-foreground">#{rank}</div>
       )}
@@ -108,24 +119,42 @@ export function FixtureCard({ e, rank, maxScore = 100 }: { e: Enriched; rank?: n
           </div>
           <ul className="space-y-1.5 text-sm text-muted-foreground">
             {score.angles.map((a, i) => (
-              <li key={i}>
-                <button
-                  type="button"
-                  onClick={(ev) => {
-                    ev.stopPropagation();
-                    logLinkClick("fixture-angle", `${fixtureRef}::${a}`);
-                  }}
-                  className="flex w-full gap-2 text-left transition hover:text-foreground"
-                >
-                  <span className="mt-1.5 size-1 shrink-0 rounded-full bg-grass" />
-                  <span>{a}</span>
-                </button>
-              </li>
+              <AngleItem key={i} angle={a} fixtureRef={fixtureRef} />
             ))}
+
           </ul>
         </div>
       )}
     </article>
   );
 }
+
+function AngleItem({ angle, fixtureRef }: { angle: string; fixtureRef: string }) {
+  const hoverStart = useRef<number | null>(null);
+  const ref = `${fixtureRef}::${angle}`;
+  return (
+    <li
+      onMouseEnter={() => { hoverStart.current = Date.now(); }}
+      onMouseLeave={() => {
+        if (hoverStart.current) {
+          logDwell("fixture-angle-dwell", ref, Date.now() - hoverStart.current);
+          hoverStart.current = null;
+        }
+      }}
+    >
+      <button
+        type="button"
+        onClick={(ev) => {
+          ev.stopPropagation();
+          logLinkClick("fixture-angle", ref);
+        }}
+        className="flex w-full gap-2 text-left transition hover:text-foreground"
+      >
+        <span className="mt-1.5 size-1 shrink-0 rounded-full bg-grass" />
+        <span>{angle}</span>
+      </button>
+    </li>
+  );
+}
+
 

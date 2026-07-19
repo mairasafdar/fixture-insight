@@ -1,5 +1,7 @@
 import type { CSSProperties } from "react";
 import { Link } from "@tanstack/react-router";
+import { openIntroModal } from "@/components/IntroModal";
+
 
 const items = [
   { to: "/", label: "This Week" },
@@ -80,13 +82,21 @@ export function Nav({ lastUpdated }: { lastUpdated: string | null }) {
             </Link>
           ))}
         </nav>
-        <div className="ml-auto flex items-center gap-2 text-[11px] uppercase tracking-wider text-white/70">
+        <div className="ml-auto flex items-center gap-3 text-[11px] uppercase tracking-wider text-white/70">
+          <button
+            type="button"
+            onClick={openIntroModal}
+            className="rounded-sm border border-white/30 px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-white/90 transition hover:bg-white/10"
+          >
+            What's new
+          </button>
           <Bolt className="size-3" style={{ color: MAGENTA }} />
           <span className="hidden sm:inline">Updated</span>
           <span className="font-mono normal-case">
             {lastUpdated ? formatRelative(lastUpdated) : "—"}
           </span>
         </div>
+
       </div>
     </header>
   );
