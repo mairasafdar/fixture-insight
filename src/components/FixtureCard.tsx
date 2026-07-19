@@ -1,5 +1,7 @@
+import { useRef } from "react";
 import type { Enriched } from "@/lib/content-score";
-import { logLinkClick } from "@/lib/analytics";
+import { logLinkClick, logDwell } from "@/lib/analytics";
+
 
 
 
