@@ -119,8 +119,11 @@ async function evaluate() {
 
     for (const f of relevant) {
       evaluated++;
-      const home = teams.get(f.home_team_id)?.name ?? "?";
-      const away = teams.get(f.away_team_id)?.name ?? "?";
+      if (f.home_team_id == null || f.away_team_id == null) continue;
+      const homeId = f.home_team_id as number;
+      const awayId = f.away_team_id as number;
+      const home = teams.get(homeId)?.name ?? "?";
+      const away = teams.get(awayId)?.name ?? "?";
       const matchup = `${home} vs ${away}`;
       const when = new Date(f.utc_date).toUTCString();
       const fixtureLabel = `${matchup} — ${when}`;
@@ -138,8 +141,8 @@ async function evaluate() {
         delivered++;
       } else if (rule.rule_type === "streak") {
         const forms = [
-          standings.get(f.home_team_id)?.form as string | null,
-          standings.get(f.away_team_id)?.form as string | null,
+          standings.get(homeId)?.form as string | null,
+          standings.get(awayId)?.form as string | null,
         ];
         const streaky = forms.some((form) => {
           if (!form) return false;
