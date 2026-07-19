@@ -241,6 +241,39 @@ function toYMD(d: Date): string {
   return d.toISOString().slice(0, 10);
 }
 
+type ClickRow = {
+  id: string;
+  link_key: string;
+  href: string | null;
+  referrer: string | null;
+  user_agent?: string | null;
+  created_at: string;
+};
+
+function startOfWeek(d: Date): Date {
+  const x = new Date(d);
+  const day = (x.getUTCDay() + 6) % 7; // Monday=0
+  x.setUTCDate(x.getUTCDate() - day);
+  x.setUTCHours(0, 0, 0, 0);
+  return x;
+}
+
+function parseFixtureRef(href: string | null): { fixtureId: string; matchup: string; angle?: string } | null {
+  if (!href) return null;
+  // formats: "fixture:<id>:<matchup>"  or  "fixture:<id>:<matchup>::<angle>"
+  const m = href.match(/^fixture:(\d+):(.+?)(?:::(.+))?$/);
+  if (!m) return null;
+  return { fixtureId: m[1], matchup: m[2], angle: m[3] };
+}
+
+function angleTemplate(angle: string): string {
+  // Collapse specific team/player names into a template shape (strip numbers, TitleCase clusters).
+  return angle
+    .replace(/\b\d+\b/g, "N")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 function LinkAnalyticsSection() {
   const today = new Date();
   const defaultStart = new Date(today);
@@ -249,27 +282,22 @@ function LinkAnalyticsSection() {
   const [start, setStart] = useState<string>(toYMD(defaultStart));
   const [end, setEnd] = useState<string>(toYMD(today));
   const [selected, setSelected] = useState<Set<LK>>(new Set(ALL_KEYS));
+  const [granularity, setGranularity] = useState<"day" | "week">("day");
 
-  const { data: clicks = [] } = useQuery({
+  const { data: clicks = [], refetch } = useQuery({
     queryKey: ["link-clicks", start, end],
     queryFn: async () => {
       const startIso = new Date(start + "T00:00:00Z").toISOString();
       const endIso = new Date(end + "T23:59:59Z").toISOString();
       const { data, error } = await (supabase as any)
         .from("link_clicks")
-        .select("id, link_key, href, referrer, created_at")
+        .select("id, link_key, href, referrer, user_agent, created_at")
         .gte("created_at", startIso)
         .lte("created_at", endIso)
         .order("created_at", { ascending: false })
         .limit(2000);
       if (error) throw error;
-      return (data ?? []) as Array<{
-        id: string;
-        link_key: string;
-        href: string | null;
-        referrer: string | null;
-        created_at: string;
-      }>;
+      return (data ?? []) as ClickRow[];
     },
   });
 
@@ -286,23 +314,57 @@ function LinkAnalyticsSection() {
   }
   const visibleKeys = ALL_KEYS.filter((k) => selected.has(k));
 
-  // Build daily series
-  const dayMap = new Map<string, Record<string, number>>();
-  const startD = new Date(start);
-  const endD = new Date(end);
-  for (let d = new Date(startD); d <= endD; d.setDate(d.getDate() + 1)) {
-    const key = toYMD(d);
-    const row: Record<string, number> = { date: 0 } as any;
+  // Build time series at chosen granularity
+  const bucketMap = new Map<string, Record<string, number>>();
+  const startD = new Date(start + "T00:00:00Z");
+  const endD = new Date(end + "T00:00:00Z");
+  const step = granularity === "day" ? 1 : 7;
+  const iter = granularity === "day" ? new Date(startD) : startOfWeek(startD);
+  while (iter <= endD) {
+    const key = toYMD(iter);
+    const row: Record<string, number> = {} as any;
     (row as any).date = key;
     for (const k of visibleKeys) row[k] = 0;
-    dayMap.set(key, row);
+    bucketMap.set(key, row);
+    iter.setUTCDate(iter.getUTCDate() + step);
   }
   for (const c of filtered) {
-    const day = c.created_at.slice(0, 10);
-    const row = dayMap.get(day);
+    const d = new Date(c.created_at);
+    const bucket = granularity === "day" ? toYMD(d) : toYMD(startOfWeek(d));
+    const row = bucketMap.get(bucket);
     if (row) row[c.link_key] = ((row[c.link_key] as number) ?? 0) + 1;
   }
-  const series = Array.from(dayMap.values());
+  const series = Array.from(bucketMap.values()).sort((a: any, b: any) =>
+    (a.date as string).localeCompare(b.date as string),
+  );
+
+  // Drill-downs: top fixtures & top angle templates
+  const fixtureCounts = new Map<string, { matchup: string; cardClicks: number; angleClicks: number }>();
+  const angleCounts = new Map<string, number>();
+  for (const c of filtered) {
+    if (c.link_key !== "fixture-card" && c.link_key !== "fixture-angle") continue;
+    const parsed = parseFixtureRef(c.href);
+    if (!parsed) continue;
+    const entry = fixtureCounts.get(parsed.fixtureId) ?? {
+      matchup: parsed.matchup,
+      cardClicks: 0,
+      angleClicks: 0,
+    };
+    if (c.link_key === "fixture-card") entry.cardClicks += 1;
+    else entry.angleClicks += 1;
+    fixtureCounts.set(parsed.fixtureId, entry);
+    if (c.link_key === "fixture-angle" && parsed.angle) {
+      const tpl = angleTemplate(parsed.angle);
+      angleCounts.set(tpl, (angleCounts.get(tpl) ?? 0) + 1);
+    }
+  }
+  const topFixtures = Array.from(fixtureCounts.entries())
+    .map(([id, v]) => ({ id, ...v, total: v.cardClicks + v.angleClicks }))
+    .sort((a, b) => b.total - a.total)
+    .slice(0, 10);
+  const topAngles = Array.from(angleCounts.entries())
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 10);
 
   const colors: Record<LK, string> = {
     linkedin: "#0A66C2",
@@ -319,6 +381,20 @@ function LinkAnalyticsSection() {
       else next.add(k);
       return next;
     });
+  }
+
+  function exportCsv() {
+    const rows = filtered.map((c) => ({
+      timestamp_iso: c.created_at,
+      link_key: c.link_key,
+      detail: c.href ?? "",
+      referrer: c.referrer ?? "",
+      user_agent: c.user_agent ?? "",
+    }));
+    downloadCsv(
+      `link-engagement_${start}_to_${end}.csv`,
+      toCsv(rows, ["timestamp_iso", "link_key", "detail", "referrer", "user_agent"]),
+    );
   }
 
   return (
@@ -349,6 +425,23 @@ function LinkAnalyticsSection() {
             className="rounded-md border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-accent"
           />
         </div>
+        <div>
+          <label className="mb-1 block text-[11px] uppercase tracking-wider text-muted-foreground">Granularity</label>
+          <div className="inline-flex overflow-hidden rounded-md border border-border">
+            {(["day", "week"] as const).map((g) => (
+              <button
+                key={g}
+                type="button"
+                onClick={() => setGranularity(g)}
+                className={`px-3 py-2 text-xs font-medium transition ${
+                  granularity === g ? "bg-accent text-accent-foreground" : "hover:bg-surface-2"
+                }`}
+              >
+                {g === "day" ? "Daily" : "Weekly"}
+              </button>
+            ))}
+          </div>
+        </div>
         <div className="flex flex-wrap gap-1.5">
           {ALL_KEYS.map((k) => {
             const on = selected.has(k);
@@ -368,6 +461,23 @@ function LinkAnalyticsSection() {
             );
           })}
         </div>
+        <div className="ml-auto flex gap-2">
+          <button
+            type="button"
+            onClick={() => refetch()}
+            className="rounded-md border border-border px-3 py-2 text-xs hover:bg-surface-2"
+          >
+            Refresh
+          </button>
+          <button
+            type="button"
+            onClick={exportCsv}
+            disabled={filtered.length === 0}
+            className="rounded-md bg-accent px-3 py-2 text-xs font-semibold text-accent-foreground disabled:opacity-50"
+          >
+            Export CSV ({filtered.length})
+          </button>
+        </div>
       </div>
 
       <div className="mt-4 grid gap-3 sm:grid-cols-3 lg:grid-cols-5">
@@ -384,7 +494,7 @@ function LinkAnalyticsSection() {
 
       <div className="mt-6 card-glass p-4">
         <div className="mb-2 text-[11px] uppercase tracking-wider text-muted-foreground">
-          Daily clicks
+          {granularity === "day" ? "Daily" : "Weekly"} clicks
         </div>
         <div className="h-72 w-full">
           <ResponsiveContainer width="100%" height="100%">
@@ -413,6 +523,53 @@ function LinkAnalyticsSection() {
               ))}
             </LineChart>
           </ResponsiveContainer>
+        </div>
+      </div>
+
+      <div className="mt-6 grid gap-4 md:grid-cols-2">
+        <div className="card-glass p-4">
+          <div className="mb-2 flex items-center justify-between">
+            <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
+              Top clicked fixtures
+            </div>
+            <div className="text-[10px] text-muted-foreground">card + angle clicks</div>
+          </div>
+          {topFixtures.length === 0 ? (
+            <div className="py-4 text-xs text-muted-foreground">No fixture clicks yet.</div>
+          ) : (
+            <ul className="divide-y divide-border/60 text-sm">
+              {topFixtures.map((f, i) => (
+                <li key={f.id} className="flex items-center gap-3 py-2">
+                  <span className="w-6 font-mono text-xs text-muted-foreground">#{i + 1}</span>
+                  <span className="flex-1 truncate">{f.matchup}</span>
+                  <span className="font-mono text-xs text-muted-foreground">
+                    {f.cardClicks}c · {f.angleClicks}a
+                  </span>
+                  <span className="w-8 text-right font-display font-semibold">{f.total}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+        <div className="card-glass p-4">
+          <div className="mb-2 text-[11px] uppercase tracking-wider text-muted-foreground">
+            Top angle templates
+          </div>
+          {topAngles.length === 0 ? (
+            <div className="py-4 text-xs text-muted-foreground">No angle clicks yet.</div>
+          ) : (
+            <ul className="divide-y divide-border/60 text-sm">
+              {topAngles.map(([tpl, count], i) => (
+                <li key={i} className="flex items-start gap-3 py-2">
+                  <span className="w-6 pt-0.5 font-mono text-xs text-muted-foreground">
+                    #{i + 1}
+                  </span>
+                  <span className="flex-1 text-xs leading-snug text-muted-foreground">{tpl}</span>
+                  <span className="w-8 text-right font-display font-semibold">{count}</span>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       </div>
 
@@ -447,7 +604,83 @@ function LinkAnalyticsSection() {
           </tbody>
         </table>
       </div>
+
+      <DebugEventsPanel />
     </section>
   );
 }
+
+function DebugEventsPanel() {
+  const [open, setOpen] = useState(false);
+  const { data: latest = [], refetch, isFetching } = useQuery({
+    queryKey: ["link-clicks-debug"],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from("link_clicks")
+        .select("id, link_key, href, referrer, user_agent, created_at")
+        .order("created_at", { ascending: false })
+        .limit(25);
+      if (error) throw error;
+      return (data ?? []) as ClickRow[];
+    },
+    refetchInterval: open ? 5000 : false,
+  });
+
+  return (
+    <section className="mt-8 rounded-md border border-dashed border-border">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex w-full items-center justify-between px-4 py-2 text-left text-xs uppercase tracking-wider text-muted-foreground hover:bg-surface-2"
+      >
+        <span>Debug · latest 25 analytics events {open ? "▾" : "▸"}</span>
+        <span className="flex items-center gap-2">
+          {open && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                refetch();
+              }}
+              className="rounded border border-border px-2 py-0.5 text-[10px] hover:bg-surface"
+            >
+              {isFetching ? "…" : "Refresh"}
+            </button>
+          )}
+        </span>
+      </button>
+      {open && (
+        <div className="max-h-96 overflow-auto border-t border-border bg-surface-2/40 p-3">
+          {latest.length === 0 ? (
+            <div className="p-2 text-xs text-muted-foreground">No events received yet.</div>
+          ) : (
+            <ul className="space-y-2 font-mono text-[11px]">
+              {latest.map((c) => (
+                <li key={c.id} className="rounded border border-border bg-surface p-2">
+                  <div className="mb-1 flex items-center justify-between">
+                    <span className="font-semibold text-accent">{c.link_key}</span>
+                    <span className="text-muted-foreground">
+                      {new Date(c.created_at).toLocaleString("en-GB")}
+                    </span>
+                  </div>
+                  <pre className="whitespace-pre-wrap break-all text-muted-foreground">
+{JSON.stringify(
+  { href: c.href, referrer: c.referrer, user_agent: c.user_agent },
+  null,
+  2,
+)}
+                  </pre>
+                </li>
+              ))}
+            </ul>
+          )}
+          <div className="mt-2 text-[10px] text-muted-foreground">
+            Auto-refreshes every 5s while open.
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
 
