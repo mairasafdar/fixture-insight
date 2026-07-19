@@ -16,7 +16,7 @@ export const getSponsorEngagement = createServerFn({ method: "GET" })
   .inputValidator((data) => z.object({ sponsorId: z.string().uuid() }).parse(data))
   .handler(async ({ data }): Promise<EngagementRow[]> => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: rows, error } = await (supabaseAdmin as any).schema("private").rpc(
+    const { data: rows, error } = await (supabaseAdmin as any).rpc(
       "get_sponsor_engagement",
       { _sponsor_id: data.sponsorId },
     );
