@@ -54,7 +54,7 @@ function RadarPage() {
       <header className="mb-8">
         <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">Season Radar</h1>
         <p className="mt-2 max-w-2xl text-muted-foreground">
-          Twenty tentpole moments in the Premier League season, sorted by month.
+          Forty tentpole moments in the Premier League season, sorted by month.
         </p>
       </header>
 
