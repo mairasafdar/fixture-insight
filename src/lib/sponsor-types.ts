@@ -10,6 +10,7 @@ export type SponsorProfile = {
   rival_categories: string[];
   is_example: boolean;
   notes: string | null;
+  agency_id?: string | null;
 };
 
 export const SPONSORSHIP_TYPE_LABEL: Record<SponsorshipType, string> = {
