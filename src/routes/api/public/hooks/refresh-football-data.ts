@@ -201,7 +201,9 @@ async function handle(request: Request) {
     });
   }
   try {
-    const result = await runRefresh();
+    const seasonParam = new URL(request.url).searchParams.get("season");
+    const seasonNum = seasonParam ? Number(seasonParam) : undefined;
+    const result = await runRefresh(Number.isFinite(seasonNum) ? seasonNum : undefined);
     return new Response(JSON.stringify({ ok: true, ...result }), {
       status: 200,
       headers: { "Content-Type": "application/json", ...corsHeaders },
