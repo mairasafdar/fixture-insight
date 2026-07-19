@@ -2,6 +2,8 @@ import { supabase } from "@/integrations/supabase/client";
 
 export type LinkKey =
   | "linkedin"
+  | "email"
+  | "inquiry"
   | "contact"
   | "football-data"
   | "fixture-card"

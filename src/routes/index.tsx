@@ -3,7 +3,16 @@ import { useQuery } from "@tanstack/react-query";
 import { fetchAllData, fetchSponsorProfiles } from "@/lib/queries";
 import { enrichFixtures } from "@/lib/content-score";
 import { scoreHospitality, sponsorHostFixtures } from "@/lib/hospitality-score";
-import { WaitlistForm } from "@/components/WaitlistForm";
+const INQUIRY_EMAIL = "mairasafdarc@gmail.com";
+function inquiryMailto(tier?: string) {
+  const subject = tier
+    ? `Fixture Radar — inquiry about ${tier}`
+    : "Fixture Radar — inquiry";
+  const body = `Hi Maira,\n\nI'd like to know more about Fixture Radar${
+    tier ? ` (${tier})` : ""
+  }.\n\nA bit about us:\n- Company / club:\n- Role:\n- What we're hoping to use it for:\n\nThanks!`;
+  return `mailto:${INQUIRY_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+}
 
 export const Route = createFileRoute("/")({
   component: Landing,
@@ -353,15 +362,41 @@ function Landing() {
                   ))}
                 </ul>
                 <div className="mt-6">
-                  <WaitlistForm tier={t.id} tierLabel={t.name} compact />
+                  <a
+                    href={inquiryMailto(t.name)}
+                    className="block w-full whitespace-nowrap rounded-md bg-accent px-4 py-2 text-center text-sm font-semibold text-accent-foreground hover:opacity-90"
+                  >
+                    Inquire about {t.name}
+                  </a>
                 </div>
               </div>
             ))}
           </div>
           <p className="mt-6 text-xs text-muted-foreground">
-            Prices in GBP. Enterprise pricing is custom — get in touch via the Enterprise waitlist and
-            we'll reach out within 48 hours.
+            Prices in GBP and indicative — Fixture Radar is in early access. Tell us what you'd use it
+            for and we'll tailor a plan (and pricing) that fits.
           </p>
+
+          {/* Shared inquiry block */}
+          <div className="mt-10 rounded-xl border border-accent/40 bg-accent/5 p-6 sm:p-8">
+            <div className="grid gap-4 sm:grid-cols-[1fr_auto] sm:items-center">
+              <div>
+                <h3 className="font-display text-xl font-bold">
+                  Want to know more, partner, or pilot Fixture Radar?
+                </h3>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  We're onboarding early sponsor brands, agencies and clubs one at a time. Send a
+                  short note about what you're working on and we'll reply within 48 hours.
+                </p>
+              </div>
+              <a
+                href={inquiryMailto()}
+                className="rounded-md bg-accent px-5 py-3 text-center font-display text-sm font-semibold uppercase tracking-wider text-accent-foreground hover:opacity-90"
+              >
+                Get in touch
+              </a>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -387,10 +422,10 @@ function Landing() {
               </Link>
             )}
             <a
-              href="#pricing"
+              href={inquiryMailto()}
               className="rounded-md border border-border bg-surface px-5 py-3 font-display text-sm font-semibold uppercase tracking-wider text-foreground hover:bg-surface-2"
             >
-              Join a waitlist
+              Get in touch
             </a>
           </div>
         </div>
