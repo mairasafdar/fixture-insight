@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import { logLinkClick } from "@/lib/analytics";
 
 export function Footer() {
   return (
@@ -18,7 +19,9 @@ export function Footer() {
         </div>
         <div className="mt-2 flex justify-center gap-4 text-xs">
           <Link to="/about" className="hover:underline">How scoring works</Link>
-          <Link to="/contact" className="hover:underline">Contact</Link>
+          <Link to="/contact" onClick={() => logLinkClick("contact", "/contact")} className="hover:underline">
+            Contact
+          </Link>
         </div>
       </div>
     </footer>
