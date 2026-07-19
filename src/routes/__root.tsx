@@ -85,6 +85,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "Automated Premier League content planning dashboard: ranked upcoming fixtures, rivalries, table stakes and tentpole moments — refreshed every 6 hours.",
       },
       { name: "author", content: "Maira Chaudhary" },
+      { name: "google-site-verification", content: "3WizQJrhDt6aqeHuicvtHTi9XH6XCIVmqV54GCe0TYc" },
       { property: "og:title", content: "Fixture Radar — Premier League content planning" },
       {
         property: "og:description",
