@@ -158,11 +158,12 @@ const corsHeaders = {
 };
 
 export const Route = createFileRoute("/api/public/hooks/refresh-football-data")({
+  // @ts-expect-error - `server` is provided at build time by the TanStack Start plugin
   server: {
     handlers: {
       OPTIONS: async () => new Response(null, { status: 204, headers: corsHeaders }),
-      GET: async ({ request }) => handle(request),
-      POST: async ({ request }) => handle(request),
+      GET: async ({ request }: { request: Request }) => handle(request),
+      POST: async ({ request }: { request: Request }) => handle(request),
     },
   },
 });
