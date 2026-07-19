@@ -66,7 +66,11 @@ export function IntroModal() {
     if (typeof window === "undefined") return;
     const seen = window.localStorage.getItem(STORAGE_KEY);
     if (seen !== INTRO_VERSION) setOpen(true);
+    const handler = () => { setStep(0); setOpen(true); };
+    window.addEventListener("fr-open-intro", handler);
+    return () => window.removeEventListener("fr-open-intro", handler);
   }, []);
+
 
   function close() {
     if (typeof window !== "undefined") {
