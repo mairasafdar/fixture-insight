@@ -703,13 +703,33 @@ function LinkAnalyticsSection() {
         </div>
       </div>
 
+      <div className="mt-6 grid gap-3 sm:grid-cols-2">
+        <div className="card-glass p-4">
+          <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Avg fixture-card dwell</div>
+          <div className="mt-1 font-display text-3xl font-bold">{avgCardDwellS}s</div>
+          <div className="mt-1 text-xs text-muted-foreground">{dwellSummary.card.n} samples</div>
+        </div>
+        <div className="card-glass p-4">
+          <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Avg content-angle dwell</div>
+          <div className="mt-1 font-display text-3xl font-bold">{avgAngleDwellS}s</div>
+          <div className="mt-1 text-xs text-muted-foreground">{dwellSummary.angle.n} samples</div>
+        </div>
+      </div>
+
       <div className="mt-6 grid gap-4 md:grid-cols-2">
         <div className="card-glass p-4">
-          <div className="mb-2 flex items-center justify-between">
+          <div className="mb-2 flex items-center justify-between gap-2">
             <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
               Top clicked fixtures
             </div>
-            <div className="text-[10px] text-muted-foreground">card + angle clicks</div>
+            <button
+              type="button"
+              onClick={exportTopFixturesCsv}
+              disabled={topFixtures.length === 0}
+              className="rounded border border-border px-2 py-0.5 text-[10px] font-semibold hover:bg-surface-2 disabled:opacity-50"
+            >
+              ⬇ CSV
+            </button>
           </div>
           {topFixtures.length === 0 ? (
             <div className="py-4 text-xs text-muted-foreground">No fixture clicks yet.</div>
@@ -718,7 +738,14 @@ function LinkAnalyticsSection() {
               {topFixtures.map((f, i) => (
                 <li key={f.id} className="flex items-center gap-3 py-2">
                   <span className="w-6 font-mono text-xs text-muted-foreground">#{i + 1}</span>
-                  <span className="flex-1 truncate">{f.matchup}</span>
+                  <div className="flex-1 truncate">
+                    <div className="truncate">{f.matchup}</div>
+                    {(f.avgCardDwellMs > 0 || f.avgAngleDwellMs > 0) && (
+                      <div className="text-[10px] text-muted-foreground">
+                        avg dwell {(f.avgCardDwellMs / 1000).toFixed(1)}s card · {(f.avgAngleDwellMs / 1000).toFixed(1)}s angle
+                      </div>
+                    )}
+                  </div>
                   <span className="font-mono text-xs text-muted-foreground">
                     {f.cardClicks}c · {f.angleClicks}a
                   </span>
@@ -729,19 +756,71 @@ function LinkAnalyticsSection() {
           )}
         </div>
         <div className="card-glass p-4">
-          <div className="mb-2 text-[11px] uppercase tracking-wider text-muted-foreground">
-            Top angle templates
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
+              Top angle templates
+            </div>
+            <button
+              type="button"
+              onClick={exportTopAnglesCsv}
+              disabled={topAngles.length === 0}
+              className="rounded border border-border px-2 py-0.5 text-[10px] font-semibold hover:bg-surface-2 disabled:opacity-50"
+            >
+              ⬇ CSV
+            </button>
           </div>
           {topAngles.length === 0 ? (
             <div className="py-4 text-xs text-muted-foreground">No angle clicks yet.</div>
           ) : (
             <ul className="divide-y divide-border/60 text-sm">
-              {topAngles.map(([tpl, count], i) => (
+              {topAngles.map((a, i) => (
                 <li key={i} className="flex items-start gap-3 py-2">
-                  <span className="w-6 pt-0.5 font-mono text-xs text-muted-foreground">
-                    #{i + 1}
-                  </span>
-                  <span className="flex-1 text-xs leading-snug text-muted-foreground">{tpl}</span>
+                  <span className="w-6 pt-0.5 font-mono text-xs text-muted-foreground">#{i + 1}</span>
+                  <div className="flex-1 text-xs leading-snug text-muted-foreground">
+                    <div>{a.tpl}</div>
+                    {a.avgDwellMs > 0 && (
+                      <div className="text-[10px]">avg dwell {(a.avgDwellMs / 1000).toFixed(1)}s</div>
+                    )}
+                  </div>
+                  <span className="w-8 text-right font-display font-semibold">{a.clicks}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
+
+      <div className="mt-6 grid gap-4 md:grid-cols-2">
+        <div className="card-glass p-4">
+          <div className="mb-2 text-[11px] uppercase tracking-wider text-muted-foreground">
+            Top referrers
+          </div>
+          {topReferrers.length === 0 ? (
+            <div className="py-4 text-xs text-muted-foreground">No referrer data.</div>
+          ) : (
+            <ul className="divide-y divide-border/60 text-sm">
+              {topReferrers.map(([host, count], i) => (
+                <li key={i} className="flex items-center gap-3 py-2">
+                  <span className="w-6 font-mono text-xs text-muted-foreground">#{i + 1}</span>
+                  <span className="flex-1 truncate">{host}</span>
+                  <span className="w-8 text-right font-display font-semibold">{count}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+        <div className="card-glass p-4">
+          <div className="mb-2 text-[11px] uppercase tracking-wider text-muted-foreground">
+            UTM sources
+          </div>
+          {topUtmSources.length === 0 ? (
+            <div className="py-4 text-xs text-muted-foreground">No UTM data.</div>
+          ) : (
+            <ul className="divide-y divide-border/60 text-sm">
+              {topUtmSources.map(([src, count], i) => (
+                <li key={i} className="flex items-center gap-3 py-2">
+                  <span className="w-6 font-mono text-xs text-muted-foreground">#{i + 1}</span>
+                  <span className="flex-1 truncate">{src}</span>
                   <span className="w-8 text-right font-display font-semibold">{count}</span>
                 </li>
               ))}
@@ -749,6 +828,7 @@ function LinkAnalyticsSection() {
           )}
         </div>
       </div>
+
 
       <div className="mt-6 overflow-hidden rounded-md border border-border">
         <table className="w-full text-left text-xs">
