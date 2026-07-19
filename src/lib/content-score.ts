@@ -73,6 +73,18 @@ export const WEIGHTS = {
   form: 10,
 } as const;
 
+/**
+ * Max score currently attainable given the data we have.
+ * Pre-season (no games played), Table Stakes and Form always score 0,
+ * so we drop their weights from the denominator to keep the /10 display fair.
+ */
+export function maxAttainable(standings: StandingRow[]): number {
+  const anyPlayed = standings.some((s) => s.played_games >= 5);
+  if (anyPlayed) return 100;
+  return 100 - WEIGHTS.tableStakes - WEIGHTS.form; // 65 pre-season
+}
+
+
 
 const BOXING_MONTH_START = "12-24";
 const BOXING_MONTH_END = "01-02";
