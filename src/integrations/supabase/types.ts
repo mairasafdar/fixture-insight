@@ -385,23 +385,15 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      last_refresh_v: {
+        Row: {
+          ran_at: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
-      get_last_refresh: { Args: never; Returns: string }
-      get_sponsor_engagement: {
-        Args: { _sponsor_id: string }
-        Returns: {
-          angle_clicks: number
-          avg_angle_dwell_ms: number
-          avg_card_dwell_ms: number
-          card_clicks: number
-          fixture_id: number
-          matchup: string
-          total_clicks: number
-          utc_date: string
-        }[]
-      }
+      [_ in never]: never
     }
     Enums: {
       app_role: "admin" | "user"
