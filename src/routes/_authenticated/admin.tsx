@@ -769,16 +769,20 @@ function LinkAnalyticsSection() {
                   <span className="w-6 font-mono text-xs text-muted-foreground">#{i + 1}</span>
                   <div className="flex-1 truncate">
                     <div className="truncate">{f.matchup}</div>
-                    {(f.avgCardDwellMs > 0 || f.avgAngleDwellMs > 0) && (
-                      <div className="text-[10px] text-muted-foreground">
-                        avg dwell {(f.avgCardDwellMs / 1000).toFixed(1)}s card · {(f.avgAngleDwellMs / 1000).toFixed(1)}s angle
-                      </div>
-                    )}
+                    <div className="text-[10px] text-muted-foreground">
+                      {(f.avgCardDwellMs > 0 || f.avgAngleDwellMs > 0) && (
+                        <>avg dwell {(f.avgCardDwellMs / 1000).toFixed(1)}s card · {(f.avgAngleDwellMs / 1000).toFixed(1)}s angle · </>
+                      )}
+                      content {f.contentScore10.toFixed(1)}/10
+                    </div>
                   </div>
                   <span className="font-mono text-xs text-muted-foreground">
                     {f.cardClicks}c · {f.angleClicks}a
                   </span>
-                  <span className="w-8 text-right font-display font-semibold">{f.total}</span>
+                  <span className="w-10 text-right font-display font-semibold" title="engagement-weighted">
+                    {f.engagementWeighted.toFixed(1)}
+                  </span>
+
                 </li>
               ))}
             </ul>
