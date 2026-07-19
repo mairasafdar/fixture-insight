@@ -4,6 +4,17 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchMarqueePlayers, fetchTeams } from "@/lib/queries";
 import type { MarqueePlayer, TeamLite } from "@/lib/content-score";
+import {
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+} from "recharts";
+
 
 export const Route = createFileRoute("/_authenticated/admin")({
   component: AdminPage,
