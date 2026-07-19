@@ -50,11 +50,7 @@ export const Route = createFileRoute("/sponsor-engagement/$sponsorId")({
 });
 
 async function fetchEngagement(sponsorId: string): Promise<EngagementRow[]> {
-  const { data, error } = await (supabase as any).rpc("get_sponsor_engagement", {
-    _sponsor_id: sponsorId,
-  });
-  if (error) throw error;
-  return (data ?? []) as EngagementRow[];
+  return await getSponsorEngagement({ data: { sponsorId } });
 }
 
 function fmtMs(ms: number): string {
