@@ -513,18 +513,66 @@ function LinkAnalyticsSection() {
   }
 
   function exportCsv() {
-    const rows = filtered.map((c) => ({
-      timestamp_iso: c.created_at,
-      link_key: c.link_key,
-      detail: c.href ?? "",
-      referrer: c.referrer ?? "",
-      user_agent: c.user_agent ?? "",
-    }));
+    const rows = filtered.map((c) => {
+      const ctx = parseContext(c.referrer);
+      return {
+        timestamp_iso: c.created_at,
+        link_key: c.link_key,
+        detail: stripDwell(c.href) ?? "",
+        dwell_ms: parseDwellMs(c.href) ?? "",
+        referrer: ctx.referrer,
+        referrer_host: referrerHost(ctx.referrer),
+        page: ctx.page,
+        utm_source: ctx.utm.utm_source ?? "",
+        utm_medium: ctx.utm.utm_medium ?? "",
+        utm_campaign: ctx.utm.utm_campaign ?? "",
+        user_agent: c.user_agent ?? "",
+      };
+    });
     downloadCsv(
       `link-engagement_${start}_to_${end}.csv`,
-      toCsv(rows, ["timestamp_iso", "link_key", "detail", "referrer", "user_agent"]),
+      toCsv(rows, [
+        "timestamp_iso", "link_key", "detail", "dwell_ms",
+        "referrer", "referrer_host", "page",
+        "utm_source", "utm_medium", "utm_campaign", "user_agent",
+      ]),
     );
   }
+
+  function exportTopFixturesCsv() {
+    downloadCsv(
+      `top-fixtures_${start}_to_${end}.csv`,
+      toCsv(
+        topFixtures.map((f, i) => ({
+          rank: i + 1,
+          fixture_id: f.id,
+          matchup: f.matchup,
+          card_clicks: f.cardClicks,
+          angle_clicks: f.angleClicks,
+          total_clicks: f.total,
+          avg_card_dwell_ms: f.avgCardDwellMs,
+          avg_angle_dwell_ms: f.avgAngleDwellMs,
+        })),
+        ["rank", "fixture_id", "matchup", "card_clicks", "angle_clicks", "total_clicks", "avg_card_dwell_ms", "avg_angle_dwell_ms"],
+      ),
+    );
+  }
+
+  function exportTopAnglesCsv() {
+    downloadCsv(
+      `top-angles_${start}_to_${end}.csv`,
+      toCsv(
+        topAngles.map((a, i) => ({
+          rank: i + 1,
+          angle_template: a.tpl,
+          clicks: a.clicks,
+          avg_dwell_ms: a.avgDwellMs,
+        })),
+        ["rank", "angle_template", "clicks", "avg_dwell_ms"],
+      ),
+    );
+  }
+
 
   return (
     <section className="mt-12">
