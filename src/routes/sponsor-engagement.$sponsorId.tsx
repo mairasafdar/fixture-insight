@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo } from "react";
-import { supabase } from "@/integrations/supabase/client";
+
 import { fetchSponsorProfiles } from "@/lib/queries";
 import { PageState } from "@/components/PageState";
 import { toCsv, downloadCsv } from "@/lib/csv";
