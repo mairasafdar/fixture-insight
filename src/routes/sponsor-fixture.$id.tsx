@@ -90,7 +90,7 @@ function OnePager() {
     }));
     downloadCsv(
       `guest-list-${e!.home?.short_name ?? "home"}-vs-${e!.away?.short_name ?? "away"}.csv`,
-      toCsvRows(rows),
+      toCsv(rows),
     );
   }
 
