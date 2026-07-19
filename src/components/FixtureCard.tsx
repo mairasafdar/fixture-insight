@@ -67,11 +67,20 @@ export function FixtureCard({ e, rank, maxScore = 100 }: { e: Enriched; rank?: n
   const { fixture, home, away, score } = e;
   const matchup = `${home?.name ?? "?"} vs ${away?.name ?? "?"}`;
   const fixtureRef = `fixture:${fixture.id}:${matchup}`;
+  const cardHoverStart = useRef<number | null>(null);
   return (
     <article
       className="card-glass group relative cursor-pointer overflow-hidden p-5 transition hover:border-grass/40 hover:shadow-glow"
       onClick={() => logLinkClick("fixture-card", fixtureRef)}
+      onMouseEnter={() => { cardHoverStart.current = Date.now(); }}
+      onMouseLeave={() => {
+        if (cardHoverStart.current) {
+          logDwell("fixture-card-dwell", fixtureRef, Date.now() - cardHoverStart.current);
+          cardHoverStart.current = null;
+        }
+      }}
     >
+
       {rank !== undefined && (
         <div className="absolute right-4 top-4 font-mono text-xs text-muted-foreground">#{rank}</div>
       )}
