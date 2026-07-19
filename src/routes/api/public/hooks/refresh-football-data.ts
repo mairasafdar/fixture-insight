@@ -161,8 +161,8 @@ export const Route = createFileRoute("/api/public/hooks/refresh-football-data")(
   server: {
     handlers: {
       OPTIONS: async () => new Response(null, { status: 204, headers: corsHeaders }),
-      GET: async () => handle(),
-      POST: async () => handle(),
+      GET: async ({ request }) => handle(request),
+      POST: async ({ request }) => handle(request),
     },
   },
 });
