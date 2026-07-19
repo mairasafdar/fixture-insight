@@ -11,21 +11,22 @@ export const Route = createFileRoute("/app")({
   component: ThisWeek,
   head: () => ({
     meta: [
-      { title: "Premier League Fixture Radar: This Week" },
+      { title: "This Week — Premier League Fixture Radar" },
       {
         name: "description",
         content:
           "The next 8 days of Premier League fixtures, ranked by an automated Content Score across rivalry, table stakes, star power, tentpole moments and form.",
       },
-      { property: "og:title", content: "Premier League Fixture Radar: This Week" },
+      { property: "og:title", content: "This Week — Premier League Fixture Radar" },
       {
         property: "og:description",
         content:
           "The next 8 days of Premier League fixtures, automatically ranked by rivalry, table stakes, star power, tentpoles and form.",
       },
-      { property: "og:url", content: "https://fixture-pulse.lovable.app/" },
+      { property: "og:url", content: "https://fixture-pulse.lovable.app/app" },
     ],
-    links: [{ rel: "canonical", href: "https://fixture-pulse.lovable.app/" }],
+    links: [{ rel: "canonical", href: "https://fixture-pulse.lovable.app/app" }],
+
   }),
 });
 
