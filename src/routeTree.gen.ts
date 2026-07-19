@@ -23,6 +23,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as SponsorFixtureIdRouteImport } from './routes/sponsor-fixture.$id'
 import { Route as SponsorEngagementSponsorIdRouteImport } from './routes/sponsor-engagement.$sponsorId'
 import { Route as AuthenticatedManageSponsorsRouteImport } from './routes/_authenticated/manage-sponsors'
+import { Route as AuthenticatedAgenciesRouteImport } from './routes/_authenticated/agencies'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as ApiPublicHooksRefreshFootballDataRouteImport } from './routes/api/public/hooks/refresh-football-data'
 
@@ -97,6 +98,11 @@ const AuthenticatedManageSponsorsRoute =
     path: '/manage-sponsors',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAgenciesRoute = AuthenticatedAgenciesRouteImport.update({
+  id: '/agencies',
+  path: '/agencies',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -121,6 +127,7 @@ export interface FileRoutesByFullPath {
   '/storylines': typeof StorylinesRoute
   '/table': typeof TableRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/agencies': typeof AuthenticatedAgenciesRoute
   '/manage-sponsors': typeof AuthenticatedManageSponsorsRoute
   '/sponsor-engagement/$sponsorId': typeof SponsorEngagementSponsorIdRoute
   '/sponsor-fixture/$id': typeof SponsorFixtureIdRoute
@@ -138,6 +145,7 @@ export interface FileRoutesByTo {
   '/storylines': typeof StorylinesRoute
   '/table': typeof TableRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/agencies': typeof AuthenticatedAgenciesRoute
   '/manage-sponsors': typeof AuthenticatedManageSponsorsRoute
   '/sponsor-engagement/$sponsorId': typeof SponsorEngagementSponsorIdRoute
   '/sponsor-fixture/$id': typeof SponsorFixtureIdRoute
@@ -157,6 +165,7 @@ export interface FileRoutesById {
   '/storylines': typeof StorylinesRoute
   '/table': typeof TableRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/_authenticated/agencies': typeof AuthenticatedAgenciesRoute
   '/_authenticated/manage-sponsors': typeof AuthenticatedManageSponsorsRoute
   '/sponsor-engagement/$sponsorId': typeof SponsorEngagementSponsorIdRoute
   '/sponsor-fixture/$id': typeof SponsorFixtureIdRoute
@@ -176,6 +185,7 @@ export interface FileRouteTypes {
     | '/storylines'
     | '/table'
     | '/admin'
+    | '/agencies'
     | '/manage-sponsors'
     | '/sponsor-engagement/$sponsorId'
     | '/sponsor-fixture/$id'
@@ -193,6 +203,7 @@ export interface FileRouteTypes {
     | '/storylines'
     | '/table'
     | '/admin'
+    | '/agencies'
     | '/manage-sponsors'
     | '/sponsor-engagement/$sponsorId'
     | '/sponsor-fixture/$id'
@@ -211,6 +222,7 @@ export interface FileRouteTypes {
     | '/storylines'
     | '/table'
     | '/_authenticated/admin'
+    | '/_authenticated/agencies'
     | '/_authenticated/manage-sponsors'
     | '/sponsor-engagement/$sponsorId'
     | '/sponsor-fixture/$id'
@@ -334,6 +346,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedManageSponsorsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/agencies': {
+      id: '/_authenticated/agencies'
+      path: '/agencies'
+      fullPath: '/agencies'
+      preLoaderRoute: typeof AuthenticatedAgenciesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin': {
       id: '/_authenticated/admin'
       path: '/admin'
@@ -353,11 +372,13 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
+  AuthenticatedAgenciesRoute: typeof AuthenticatedAgenciesRoute
   AuthenticatedManageSponsorsRoute: typeof AuthenticatedManageSponsorsRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
+  AuthenticatedAgenciesRoute: AuthenticatedAgenciesRoute,
   AuthenticatedManageSponsorsRoute: AuthenticatedManageSponsorsRoute,
 }
 

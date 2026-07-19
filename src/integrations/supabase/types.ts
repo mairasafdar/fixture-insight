@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      agencies: {
+        Row: {
+          contact_email: string | null
+          created_at: string
+          footer_note: string | null
+          id: string
+          logo_url: string | null
+          name: string
+          owner_id: string
+          primary_color: string | null
+          updated_at: string
+        }
+        Insert: {
+          contact_email?: string | null
+          created_at?: string
+          footer_note?: string | null
+          id?: string
+          logo_url?: string | null
+          name: string
+          owner_id: string
+          primary_color?: string | null
+          updated_at?: string
+        }
+        Update: {
+          contact_email?: string | null
+          created_at?: string
+          footer_note?: string | null
+          id?: string
+          logo_url?: string | null
+          name?: string
+          owner_id?: string
+          primary_color?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       fixtures: {
         Row: {
           away_score: number | null
@@ -162,6 +198,7 @@ export type Database = {
       }
       sponsor_profiles: {
         Row: {
+          agency_id: string | null
           brand_name: string
           category: string
           created_at: string
@@ -175,6 +212,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          agency_id?: string | null
           brand_name: string
           category: string
           created_at?: string
@@ -188,6 +226,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          agency_id?: string | null
           brand_name?: string
           category?: string
           created_at?: string
@@ -200,7 +239,15 @@ export type Database = {
           team_ids?: number[]
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "sponsor_profiles_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       standings: {
         Row: {
