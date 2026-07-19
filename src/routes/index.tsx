@@ -110,12 +110,14 @@ function Landing() {
     const upcoming = enriched.filter(
       (e) => new Date(e.fixture.utc_date).getTime() >= Date.now() && e.fixture.status !== "FINISHED",
     );
-    const hosts = sponsorHostFixtures(upcoming, example, base.teams);
+    const sponsorTeamIds = new Set(example.team_ids ?? []);
+    const hosts = sponsorHostFixtures(upcoming, sponsorTeamIds);
     return hosts
-      .map((h) => ({ ...h, hosp: scoreHospitality(h, example, base.standings) }))
+      .map((h) => ({ ...h, hosp: scoreHospitality(h, sponsorTeamIds, example, sponsors) }))
       .sort((a, b) => b.hosp.total - a.hosp.total)
       .slice(0, 3);
   })();
+
 
   return (
     <div className="min-h-screen">
