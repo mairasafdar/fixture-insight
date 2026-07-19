@@ -68,7 +68,14 @@ function SponsorLens() {
     queryFn: fetchSponsorProfiles,
   });
 
-  const selected = sponsors.find((s) => s.id === sponsorId) ?? null;
+  // If no sponsor is chosen, default to the beer example so first-time visitors see the feature in action.
+  const defaultSponsor =
+    sponsors.find((s) => s.is_example && s.category === "beer") ??
+    sponsors.find((s) => s.is_example) ??
+    sponsors[0] ??
+    null;
+  const selected = sponsors.find((s) => s.id === sponsorId) ?? (sponsorId ? null : defaultSponsor);
+
 
   const enrichedAll = useMemo(() => {
     if (!base) return [];
