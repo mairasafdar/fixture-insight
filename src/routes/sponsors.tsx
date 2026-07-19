@@ -123,13 +123,14 @@ function SponsorLens() {
           </label>
           <select
             id="sponsor-select"
-            value={sponsorId ?? ""}
+            value={sponsorId ?? selected?.id ?? ""}
             onChange={(e) =>
               navigate({ search: { sponsor: e.target.value || undefined } })
             }
             className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-accent"
           >
             <option value="">Select a sponsor…</option>
+
             {sponsors.map((s) => (
               <option key={s.id} value={s.id}>
                 {s.brand_name} · {s.category}
