@@ -1,6 +1,11 @@
 import { supabase } from "@/integrations/supabase/client";
 
-export type LinkKey = "linkedin" | "contact" | "football-data";
+export type LinkKey =
+  | "linkedin"
+  | "contact"
+  | "football-data"
+  | "fixture-card"
+  | "fixture-angle";
 
 export function logLinkClick(linkKey: LinkKey, href?: string) {
   if (typeof window === "undefined") return;
