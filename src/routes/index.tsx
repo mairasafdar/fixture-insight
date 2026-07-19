@@ -144,7 +144,7 @@ function Landing() {
                   search={{ sponsor: example.id }}
                   className="rounded-md bg-accent px-5 py-3 font-display text-sm font-semibold uppercase tracking-wider text-accent-foreground hover:opacity-90"
                 >
-                  See the {example.name} example →
+                  See the {example.brand_name} example →
                 </Link>
               ) : (
                 <Link
@@ -383,7 +383,7 @@ function Landing() {
                 search={{ sponsor: example.id }}
                 className="rounded-md bg-accent px-5 py-3 font-display text-sm font-semibold uppercase tracking-wider text-accent-foreground hover:opacity-90"
               >
-                Open the {example.name} example
+                Open the {example.brand_name} example
               </Link>
             )}
             <a
