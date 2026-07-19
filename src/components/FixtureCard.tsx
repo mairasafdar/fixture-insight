@@ -1,4 +1,6 @@
 import type { Enriched } from "@/lib/content-score";
+import { logLinkClick } from "@/lib/analytics";
+
 
 
 const kindStyles: Record<string, string> = {
