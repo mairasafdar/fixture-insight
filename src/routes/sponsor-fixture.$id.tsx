@@ -53,6 +53,8 @@ function OnePager() {
   const { sponsor: sponsorId } = Route.useSearch();
   const fixtureId = Number(id);
   const [copied, setCopied] = useState(false);
+  const [seats, setSeats] = useState(30);
+
 
   const { data: base, isLoading } = useQuery({ queryKey: ["fixture-data"], queryFn: fetchAllData });
   const { data: sponsors = [] } = useQuery({ queryKey: ["sponsors"], queryFn: fetchSponsorProfiles });
