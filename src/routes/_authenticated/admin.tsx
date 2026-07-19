@@ -4,6 +4,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchMarqueePlayers, fetchTeams } from "@/lib/queries";
 import type { MarqueePlayer, TeamLite } from "@/lib/content-score";
+import { toCsv, downloadCsv } from "@/lib/csv";
+
 import {
   ResponsiveContainer,
   LineChart,
