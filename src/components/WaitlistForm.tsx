@@ -81,7 +81,7 @@ export function WaitlistForm({
       <button
         type="submit"
         disabled={mutation.isPending}
-        className="rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground hover:opacity-90 disabled:opacity-50"
+        className="w-full whitespace-nowrap rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground hover:opacity-90 disabled:opacity-50"
       >
         {mutation.isPending ? "Joining…" : `Join ${tierLabel} waitlist`}
       </button>
