@@ -107,6 +107,21 @@ export type Database = {
           },
         ]
       }
+      last_refresh: {
+        Row: {
+          id: boolean
+          ran_at: string
+        }
+        Insert: {
+          id?: boolean
+          ran_at?: string
+        }
+        Update: {
+          id?: boolean
+          ran_at?: string
+        }
+        Relationships: []
+      }
       link_clicks: {
         Row: {
           created_at: string
@@ -385,12 +400,7 @@ export type Database = {
       }
     }
     Views: {
-      last_refresh_v: {
-        Row: {
-          ran_at: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       [_ in never]: never
