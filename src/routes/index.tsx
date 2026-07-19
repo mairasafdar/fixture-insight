@@ -57,7 +57,7 @@ function ThisWeek() {
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
           {enriched.map((e, i) => (
-            <FixtureCard key={e.fixture.id} e={e} rank={i + 1} />
+            <FixtureCard key={e.fixture.id} e={e} rank={i + 1} maxScore={maxScore} />
           ))}
         </div>
       )}
