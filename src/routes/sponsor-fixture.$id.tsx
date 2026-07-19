@@ -6,7 +6,8 @@ import { fetchAllData, fetchSponsorProfiles } from "@/lib/queries";
 import { enrichFixtures } from "@/lib/content-score";
 import { scoreHospitality } from "@/lib/hospitality-score";
 import { estimateMediaValue, estimateAudienceFit, planGuestList, formatGbp } from "@/lib/sponsor-value";
-import { downloadCsv } from "@/lib/csv";
+import { downloadCsv, toCsv } from "@/lib/csv";
+
 import { PageState } from "@/components/PageState";
 
 const search = z.object({ sponsor: z.string().optional() });
