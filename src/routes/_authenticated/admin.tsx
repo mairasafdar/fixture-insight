@@ -234,8 +234,17 @@ values ('${userId ?? "<your-user-id>"}', 'admin');`}
   );
 }
 
-const ALL_KEYS = ["linkedin", "contact", "football-data", "fixture-card", "fixture-angle"] as const;
+const ALL_KEYS = [
+  "linkedin",
+  "contact",
+  "football-data",
+  "fixture-card",
+  "fixture-angle",
+  "fixture-card-dwell",
+  "fixture-angle-dwell",
+] as const;
 type LK = (typeof ALL_KEYS)[number];
+
 
 function toYMD(d: Date): string {
   return d.toISOString().slice(0, 10);
