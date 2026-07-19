@@ -21,7 +21,15 @@ export const Route = createFileRoute("/sponsors")({
         content:
           "Re-view the Premier League season through a sponsor's eyes: fixtures for their sponsored clubs, ranked by hospitality value.",
       },
+      { property: "og:title", content: "Sponsor Lens — Fixture Radar" },
+      {
+        property: "og:description",
+        content:
+          "Rank Premier League fixtures by hospitality value for a chosen sponsor brand.",
+      },
+      { property: "og:url", content: "https://fixture-pulse.lovable.app/sponsors" },
     ],
+    links: [{ rel: "canonical", href: "https://fixture-pulse.lovable.app/sponsors" }],
   }),
 });
 
@@ -98,10 +106,14 @@ function SponsorLens() {
       {/* Sponsor selector */}
       <div className="card-glass mb-8 flex flex-wrap items-end gap-3 p-4">
         <div className="min-w-64 flex-1">
-          <label className="mb-1 block text-[11px] uppercase tracking-wider text-muted-foreground">
+          <label
+            htmlFor="sponsor-select"
+            className="mb-1 block text-[11px] uppercase tracking-wider text-muted-foreground"
+          >
             Sponsor
           </label>
           <select
+            id="sponsor-select"
             value={sponsorId ?? ""}
             onChange={(e) =>
               navigate({ search: { sponsor: e.target.value || undefined } })

@@ -108,6 +108,29 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Barlow+Condensed:wght@500;600;700;800;900&display=swap",
       },
     ],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          name: "Fixture Radar",
+          url: "https://fixture-pulse.lovable.app",
+          description:
+            "Automated Premier League content planning dashboard. Ranks upcoming fixtures by rivalry, table stakes, star power, tentpoles and form.",
+        }),
+      },
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          name: "Fixture Radar",
+          url: "https://fixture-pulse.lovable.app",
+          founder: { "@type": "Person", name: "Maira Chaudhary" },
+        }),
+      },
+    ],
   }),
   shellComponent: RootShell,
   component: RootComponent,

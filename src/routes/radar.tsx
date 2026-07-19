@@ -13,7 +13,14 @@ export const Route = createFileRoute("/radar")({
         name: "description",
         content: "The 40 highest-scoring Premier League fixtures of the season, grouped by month.",
       },
+      { property: "og:title", content: "Season Radar — Fixture Radar" },
+      {
+        property: "og:description",
+        content: "The 40 highest-scoring Premier League fixtures of the season, grouped by month.",
+      },
+      { property: "og:url", content: "https://fixture-pulse.lovable.app/radar" },
     ],
+    links: [{ rel: "canonical", href: "https://fixture-pulse.lovable.app/radar" }],
   }),
 });
 

@@ -10,7 +10,11 @@ export const Route = createFileRoute("/table")({
     meta: [
       { title: "Premier League Table — Fixture Radar" },
       { name: "description", content: "Live Premier League standings with recent form." },
+      { property: "og:title", content: "Premier League Table — Fixture Radar" },
+      { property: "og:description", content: "Live Premier League standings with recent form." },
+      { property: "og:url", content: "https://fixture-pulse.lovable.app/table" },
     ],
+    links: [{ rel: "canonical", href: "https://fixture-pulse.lovable.app/table" }],
   }),
 });
 

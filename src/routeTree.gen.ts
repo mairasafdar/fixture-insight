@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as TableRouteImport } from './routes/table'
 import { Route as StorylinesRouteImport } from './routes/storylines'
 import { Route as SponsorsRouteImport } from './routes/sponsors'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as RadarRouteImport } from './routes/radar'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AboutRouteImport } from './routes/about'
@@ -35,6 +36,11 @@ const StorylinesRoute = StorylinesRouteImport.update({
 const SponsorsRoute = SponsorsRouteImport.update({
   id: '/sponsors',
   path: '/sponsors',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RadarRoute = RadarRouteImport.update({
@@ -89,6 +95,7 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
   '/radar': typeof RadarRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sponsors': typeof SponsorsRoute
   '/storylines': typeof StorylinesRoute
   '/table': typeof TableRoute
@@ -102,6 +109,7 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
   '/radar': typeof RadarRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sponsors': typeof SponsorsRoute
   '/storylines': typeof StorylinesRoute
   '/table': typeof TableRoute
@@ -117,6 +125,7 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
   '/radar': typeof RadarRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sponsors': typeof SponsorsRoute
   '/storylines': typeof StorylinesRoute
   '/table': typeof TableRoute
@@ -132,6 +141,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/auth'
     | '/radar'
+    | '/sitemap.xml'
     | '/sponsors'
     | '/storylines'
     | '/table'
@@ -145,6 +155,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/auth'
     | '/radar'
+    | '/sitemap.xml'
     | '/sponsors'
     | '/storylines'
     | '/table'
@@ -159,6 +170,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/auth'
     | '/radar'
+    | '/sitemap.xml'
     | '/sponsors'
     | '/storylines'
     | '/table'
@@ -174,6 +186,7 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   AuthRoute: typeof AuthRoute
   RadarRoute: typeof RadarRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SponsorsRoute: typeof SponsorsRoute
   StorylinesRoute: typeof StorylinesRoute
   TableRoute: typeof TableRoute
@@ -202,6 +215,13 @@ declare module '@tanstack/react-router' {
       path: '/sponsors'
       fullPath: '/sponsors'
       preLoaderRoute: typeof SponsorsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/radar': {
@@ -289,6 +309,7 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   AuthRoute: AuthRoute,
   RadarRoute: RadarRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   SponsorsRoute: SponsorsRoute,
   StorylinesRoute: StorylinesRoute,
   TableRoute: TableRoute,

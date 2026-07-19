@@ -1,0 +1,12 @@
+# Fixture Radar
+
+> Automated Premier League content planning dashboard. Ranks upcoming fixtures by an automated Content Score across rivalry, table stakes, star power, tentpole moments and form. Data auto-refreshes every 6 hours.
+
+## Pages
+
+- [This Week](/): Upcoming Premier League fixtures in the next 8 days, ranked by Content Score.
+- [Season Radar](/radar): The 40 highest-scoring Premier League fixtures of the season, grouped by month.
+- [Table](/table): Live Premier League standings with recent form.
+- [Storylines](/storylines): Recent results with auto-detected upsets, goal fests and streaks.
+- [Sponsor Lens](/sponsors): Re-view the season through a sponsor's eyes, ranked by Hospitality Score.
+- [How scoring works](/about): Breakdown of the Content Score components and weights.

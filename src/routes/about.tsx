@@ -10,6 +10,65 @@ export const Route = createFileRoute("/about")({
         content:
           "How the Fixture Radar Content Score works: rivalry, table stakes, star power, tentpole moments and form.",
       },
+      { property: "og:title", content: "How scoring works — Fixture Radar" },
+      {
+        property: "og:description",
+        content:
+          "Breakdown of the five components that power the Fixture Radar Content Score.",
+      },
+      { property: "og:url", content: "https://fixture-pulse.lovable.app/about" },
+    ],
+    links: [{ rel: "canonical", href: "https://fixture-pulse.lovable.app/about" }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: [
+            {
+              "@type": "Question",
+              name: "What is the Fixture Radar Content Score?",
+              acceptedAnswer: {
+                "@type": "Answer",
+                text: "An automated 0–100 score for every Premier League fixture, built from five components: Rivalry, Table stakes, Star power, Tentpole moments and Form.",
+              },
+            },
+            {
+              "@type": "Question",
+              name: "How is Rivalry scored?",
+              acceptedAnswer: {
+                "@type": "Answer",
+                text: "Up to 25 points from a hardcoded matrix of derbies and classic rivalries.",
+              },
+            },
+            {
+              "@type": "Question",
+              name: "How is Table stakes scored?",
+              acceptedAnswer: {
+                "@type": "Answer",
+                text: "Up to 25 points for top-4 clashes, 1st vs 2nd, relegation six-pointers and tight points gaps. Activates once teams have played 5+ games.",
+              },
+            },
+            {
+              "@type": "Question",
+              name: "How is Star power scored?",
+              acceptedAnswer: {
+                "@type": "Answer",
+                text: "Up to 25 points from marquee players on show. Tier 1 = 10 pts each, Tier 2 = 5 pts, capped at 25.",
+              },
+            },
+            {
+              "@type": "Question",
+              name: "How are Tentpole and Form scored?",
+              acceptedAnswer: {
+                "@type": "Answer",
+                text: "Tentpole adds up to 15 points for opening weekend, Boxing Day, festive fixtures and final day. Form adds up to 10 points when a team is on a 4+ game winning or unbeaten streak.",
+              },
+            },
+          ],
+        }),
+      },
     ],
   }),
 });
