@@ -47,22 +47,24 @@ async function fetchFD(path: string, token: string) {
   return res.json();
 }
 
-async function runRefresh() {
+async function runRefresh(season?: number) {
   const token = process.env.FOOTBALL_DATA_API_TOKEN;
   if (!token) throw new Error("FOOTBALL_DATA_API_TOKEN not set");
 
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-  // Fetch matches
-  const matchesJson = (await fetchFD("/competitions/PL/matches", token)) as {
+  const seasonQs = season ? `?season=${season}` : "";
+
+  // Fetch matches (optionally scoped to a past season)
+  const matchesJson = (await fetchFD(`/competitions/PL/matches${seasonQs}`, token)) as {
     matches: Match[];
   };
   const matches = matchesJson.matches ?? [];
 
-  // Fetch standings (may be empty pre-season)
+  // Fetch standings (may be empty pre-season; for past seasons this returns final table)
   let table: StandingRow[] = [];
   try {
-    const standingsJson = (await fetchFD("/competitions/PL/standings", token)) as {
+    const standingsJson = (await fetchFD(`/competitions/PL/standings${seasonQs}`, token)) as {
       standings: Array<{ type: string; table: StandingRow[] }>;
     };
     const total = standingsJson.standings?.find((s) => s.type === "TOTAL");
@@ -118,8 +120,8 @@ async function runRefresh() {
     if (error) throw new Error(`fixtures upsert: ${error.message}`);
   }
 
-  // Replace standings
-  if (table.length) {
+  // Replace standings only for the current season (we don't have a season column on standings)
+  if (!season && table.length) {
     const standingRows = table
       .filter((r) => r.team?.id)
       .map((r) => ({
@@ -148,7 +150,7 @@ async function runRefresh() {
     standings_count: table.length,
   });
 
-  return { fixtures: fixtureRows.length, standings: table.length, teams: teamRows.length };
+  return { season: season ?? "current", fixtures: fixtureRows.length, standings: table.length, teams: teamRows.length };
 }
 
 const corsHeaders = {
