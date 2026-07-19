@@ -127,7 +127,7 @@ function About() {
       </p>
 
       <div className="mt-8 text-sm">
-        <Link to="/" className="text-accent hover:underline">← Back to This Week</Link>
+        <Link to="/app" className="text-accent hover:underline">← Back to This Week</Link>
       </div>
     </div>
   );
