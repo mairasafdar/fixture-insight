@@ -187,7 +187,11 @@ async function handle(request: Request) {
     (request.headers.get("authorization") || "").replace(/^Bearer\s+/i, "") ||
     new URL(request.url).searchParams.get("secret") ||
     "";
-  if (!provided || !timingSafeEqualStr(provided, expected)) {
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+  const authorized =
+    (!!provided && timingSafeEqualStr(provided, expected)) ||
+    (!!provided && !!serviceKey && timingSafeEqualStr(provided, serviceKey));
+  if (!authorized) {
     return new Response(JSON.stringify({ ok: false, error: "unauthorized" }), {
       status: 401,
       headers: { "Content-Type": "application/json", ...corsHeaders },
