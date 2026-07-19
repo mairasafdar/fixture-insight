@@ -167,7 +167,32 @@ export const Route = createFileRoute("/api/public/hooks/refresh-football-data")(
   },
 });
 
-async function handle() {
+function timingSafeEqualStr(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let out = 0;
+  for (let i = 0; i < a.length; i++) out |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return out === 0;
+}
+
+async function handle(request: Request) {
+  const expected = process.env.REFRESH_HOOK_SECRET;
+  if (!expected) {
+    return new Response(JSON.stringify({ ok: false, error: "server misconfigured" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json", ...corsHeaders },
+    });
+  }
+  const provided =
+    request.headers.get("x-refresh-secret") ||
+    (request.headers.get("authorization") || "").replace(/^Bearer\s+/i, "") ||
+    new URL(request.url).searchParams.get("secret") ||
+    "";
+  if (!provided || !timingSafeEqualStr(provided, expected)) {
+    return new Response(JSON.stringify({ ok: false, error: "unauthorized" }), {
+      status: 401,
+      headers: { "Content-Type": "application/json", ...corsHeaders },
+    });
+  }
   try {
     const result = await runRefresh();
     return new Response(JSON.stringify({ ok: true, ...result }), {
