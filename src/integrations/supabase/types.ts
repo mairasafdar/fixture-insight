@@ -303,6 +303,39 @@ export type Database = {
         }
         Relationships: []
       }
+      waitlist_signups: {
+        Row: {
+          company: string | null
+          created_at: string
+          email: string
+          id: string
+          referrer: string | null
+          role: string | null
+          tier: string
+          utm_source: string | null
+        }
+        Insert: {
+          company?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          referrer?: string | null
+          role?: string | null
+          tier: string
+          utm_source?: string | null
+        }
+        Update: {
+          company?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          referrer?: string | null
+          role?: string | null
+          tier?: string
+          utm_source?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

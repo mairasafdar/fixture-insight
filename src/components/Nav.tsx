@@ -4,13 +4,15 @@ import { openIntroModal } from "@/components/IntroModal";
 
 
 const items = [
-  { to: "/", label: "This Week" },
+  { to: "/", label: "For Business" },
+  { to: "/app", label: "This Week" },
   { to: "/radar", label: "Season Radar" },
   { to: "/sponsors", label: "Sponsor Lens" },
   { to: "/table", label: "Table" },
   { to: "/storylines", label: "Storylines" },
   { to: "/about", label: "About" },
 ] as const;
+
 
 const AUBERGINE = "oklch(0.20 0.09 320)";
 const AUBERGINE_2 = "oklch(0.28 0.11 320)";
