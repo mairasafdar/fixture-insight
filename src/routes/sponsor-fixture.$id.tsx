@@ -188,6 +188,86 @@ function OnePager() {
           )}
         </div>
 
+        {sponsor && (
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <div className="rounded-lg border border-border bg-surface-2 p-4">
+              <div className="flex items-baseline justify-between">
+                <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
+                  Estimated Media Value
+                </div>
+                <div className="font-display text-2xl font-bold text-grass">{formatGbp(emv.gbp)}</div>
+              </div>
+              <div className="mt-2 text-xs text-muted-foreground">
+                {emv.slotLabel} · ~{emv.reachMillions}M UK viewers · {emv.brandSecondsPerBroadcast}s
+                brand exposure · content ×{emv.contentMultiplier} · intl ×{emv.internationalMultiplier}
+              </div>
+            </div>
+            {fit && (
+              <div className="rounded-lg border border-border bg-surface-2 p-4">
+                <div className="flex items-baseline justify-between">
+                  <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
+                    Audience Fit · {sponsor.category}
+                  </div>
+                  <div className="font-display text-2xl font-bold text-grass">
+                    {(fit.score / 10).toFixed(1)}
+                    <span className="text-sm text-muted-foreground">/10</span>
+                  </div>
+                </div>
+                <div className="mt-2 text-xs text-muted-foreground">
+                  Slot profile: <span className="text-foreground">{fit.profileLabel}</span>. {fit.reason}.
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {sponsor && (
+          <div className="mt-6 rounded-lg border border-border bg-surface-2 p-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
+                  Guest-list planner
+                </div>
+                <div className="mt-1 text-xs text-muted-foreground">
+                  Distribution auto-tuned to Hospitality Score {(hospitality?.total ?? 0) / 10}/10.
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <label htmlFor="seats" className="text-xs text-muted-foreground">
+                  Seats
+                </label>
+                <input
+                  id="seats"
+                  type="number"
+                  min={0}
+                  max={500}
+                  value={seats}
+                  onChange={(ev) => setSeats(Number(ev.target.value) || 0)}
+                  className="w-20 rounded-md border border-border bg-background px-2 py-1 text-sm focus:border-accent focus:outline-none"
+                />
+                <button
+                  onClick={exportGuestList}
+                  className="rounded-md border border-border bg-surface px-3 py-1.5 text-xs font-semibold uppercase tracking-wider hover:bg-surface-2"
+                >
+                  Export CSV
+                </button>
+              </div>
+            </div>
+            <div className="mt-4 grid gap-2 sm:grid-cols-2">
+              {guests.map((g) => (
+                <div key={g.name} className="rounded-md border border-border bg-background/60 p-3">
+                  <div className="flex items-baseline justify-between">
+                    <div className="text-sm font-semibold">{g.name}</div>
+                    <div className="font-display text-lg font-bold text-accent">{g.seats}</div>
+                  </div>
+                  <div className="mt-1 text-xs text-muted-foreground">{g.note}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+
         {e.score.angles.length > 0 && (
           <div className="mt-6">
             <div className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-grass">
