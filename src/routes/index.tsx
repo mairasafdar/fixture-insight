@@ -3,7 +3,16 @@ import { useQuery } from "@tanstack/react-query";
 import { fetchAllData, fetchSponsorProfiles } from "@/lib/queries";
 import { enrichFixtures } from "@/lib/content-score";
 import { scoreHospitality, sponsorHostFixtures } from "@/lib/hospitality-score";
-import { WaitlistForm } from "@/components/WaitlistForm";
+const INQUIRY_EMAIL = "mairasafdarc@gmail.com";
+function inquiryMailto(tier?: string) {
+  const subject = tier
+    ? `Fixture Radar — inquiry about ${tier}`
+    : "Fixture Radar — inquiry";
+  const body = `Hi Maira,\n\nI'd like to know more about Fixture Radar${
+    tier ? ` (${tier})` : ""
+  }.\n\nA bit about us:\n- Company / club:\n- Role:\n- What we're hoping to use it for:\n\nThanks!`;
+  return `mailto:${INQUIRY_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+}
 
 export const Route = createFileRoute("/")({
   component: Landing,
