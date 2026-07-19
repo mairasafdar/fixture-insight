@@ -168,9 +168,11 @@ function AppShell() {
         <Outlet />
       </main>
       <Footer />
+      <IntroModal />
     </div>
   );
 }
+
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
