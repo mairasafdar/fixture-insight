@@ -46,7 +46,7 @@ export function WaitlistForm({
 
   return (
     <form
-      className={compact ? "flex flex-col gap-2 sm:flex-row" : "grid gap-2"}
+      className={compact ? "flex w-full flex-col gap-2" : "grid gap-2"}
       onSubmit={(e) => {
         e.preventDefault();
         mutation.mutate({ email, company: company || undefined, role: role || undefined });
